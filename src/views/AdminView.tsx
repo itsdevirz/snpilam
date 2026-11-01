@@ -106,6 +106,7 @@ export const AdminView: React.FC = () => {
     updateMessageStatus,
     deleteMessage,
     resetAllData,
+    syncAllDataToMysql,
     changeAdminPassword,
   } = useDataContext();
 
@@ -1325,15 +1326,6 @@ export const AdminView: React.FC = () => {
                   <p className="text-[11px] text-slate-500">تنظیم پارامترهای اتصال PHP به دیتابیس MySQL هاست و بررسی وضعیت ارتباط</p>
                 </div>
               </div>
-
-              <a
-                href="/schema.sql"
-                download="ilam_med_council_schema.sql"
-                className="text-[11px] bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 shrink-0 self-start sm:self-auto"
-              >
-                <Download className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>دانلود اسکریپت SQL دیتابیس</span>
-              </a>
             </div>
 
             {/* Connection Test Result Feedback Box */}
@@ -1492,14 +1484,6 @@ export const AdminView: React.FC = () => {
                 <CheckCircle2 className="w-4 h-4" />
                 <span>ذخیره تنظیمات و ایجاد خودکار جداول</span>
               </button>
-            </div>
-
-            {/* Deployment Instruction note */}
-            <div className="bg-amber-50/70 border border-amber-200 p-3 rounded-lg text-[11px] text-amber-900 leading-relaxed flex items-start gap-2">
-              <Server className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <strong>راهنمای آپلود روی cPanel:</strong> کافیست پس از اجرای کامند ساخت نسخه نهایی (<code className="bg-amber-100 px-1 py-0.5 rounded font-mono">npm run build</code>)، تمام فایلهای داخل پوشه <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">dist</code> را در پوشه <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">public_html</code> هاست آپلود نمایید. اسکریپت‌های PHP به همراه دیتابیس به طور کامل در پوشه <code className="bg-amber-100 px-1 py-0.5 rounded font-mono">api/</code> قرار دارند.
-              </div>
             </div>
           </div>
 

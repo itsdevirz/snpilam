@@ -1,7 +1,7 @@
 <?php
 /**
- * Ilam Medical Council Portal - MySQL REST Data API for cPanel
- * Handles CRUD operations for physicians, announcements, news, facilities, classifieds, education, regulations, services, messages, and logs.
+ * Ilam Medical Council Portal - Fast MySQL REST API for cPanel
+ * Performs CRUD operations for all entities (Physicians, Announcements, News, Facilities, Classifieds, Education, Regulations, Services, Messages, Logs, Settings)
  */
 
 require_once __DIR__ . '/config.php';
@@ -11,15 +11,22 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'error' => $e->getMessage()
+        'error' => 'عدم امکان اتصال به دیتابیس MySQL: ' . $e->getMessage()
     ], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';
+$action = isset($_GET['action']) ? $_GET['action'] : (isset($_POST['action']) ? $_POST['action'] : '');
 $rawInput = file_get_contents('php://input');
 $input = json_decode($rawInput, true);
 
+$allowedTables = [
+    'physicians', 'announcements', 'news', 'facilities', 
+    'classifieds', 'education', 'regulations', 'services', 
+    'messages', 'logs', 'admin_config'
+];
+
+// 1. GET ALL DATA (Public & Admin initial load)
 if ($action === 'get_all') {
     try {
         $data = [
@@ -35,7 +42,15 @@ if ($action === 'get_all') {
             'logs' => $pdo->query("SELECT * FROM logs ORDER BY created_at DESC")->fetchAll(),
         ];
 
-        // Format JSON encoded fields inside records
+        // Fetch settings (e.g. custom admin password if set)
+        $settingsRaw = $pdo->query("SELECT setting_key, setting_value FROM admin_config")->fetchAll();
+        $settings = [];
+        foreach ($settingsRaw as $row) {
+            $settings[$row['setting_key']] = $row['setting_value'];
+        }
+        $data['settings'] = $settings;
+
+        // Decode JSON fields & format types
         foreach ($data['physicians'] as &$p) {
             $p['services'] = !empty($p['services']) ? json_decode($p['services'], true) : [];
         }
@@ -68,38 +83,101 @@ if ($action === 'get_all') {
     exit();
 }
 
+// 2. SAVE OR UPDATE INDIVIDUAL ITEM
+if ($action === 'save_item' && $input) {
+    $table = isset($input['table']) ? trim($input['table']) : '';
+    $item = isset($input['item']) ? $input['item'] : null;
+
+    if (!in_array($table, $allowedTables) || !$item || empty($item['id'])) {
+        echo json_encode(['success' => false, 'error' => 'نام جدول یا داده ارسالی نامعتبر است.'], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    try {
+        $cols = [];
+        $placeholders = [];
+        $updateParts = [];
+        $params = [];
+
+        foreach ($item as $key => $val) {
+            // Ignore created_at if passed from client
+            if ($key === 'created_at') continue;
+
+            $cols[] = "`$key`";
+            $placeholders[] = ":$key";
+            if ($key !== 'id') {
+                $updateParts[] = "`$key` = VALUES(`$key`)";
+            }
+
+            if (is_array($val) || is_object($val)) {
+                $params[":$key"] = json_encode($val, JSON_UNESCAPED_UNICODE);
+            } elseif (is_bool($val)) {
+                $params[":$key"] = $val ? 1 : 0;
+            } else {
+                $params[":$key"] = $val;
+            }
+        }
+
+        $sql = "INSERT INTO `$table` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ") ";
+        if (!empty($updateParts)) {
+            $sql .= "ON DUPLICATE KEY UPDATE " . implode(', ', $updateParts);
+        } else {
+            $sql .= "ON DUPLICATE KEY UPDATE `id` = `id`";
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        echo json_encode(['success' => true, 'message' => 'اطلاعات با موفقیت در دیتابیس MySQL ذخیره گردید.'], JSON_UNESCAPED_UNICODE);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+    exit();
+}
+
+// 3. DELETE INDIVIDUAL ITEM
+if ($action === 'delete_item' && $input) {
+    $table = isset($input['table']) ? trim($input['table']) : '';
+    $id = isset($input['id']) ? trim($input['id']) : '';
+
+    if (!in_array($table, $allowedTables) || empty($id)) {
+        echo json_encode(['success' => false, 'error' => 'اطلاعات برای حذف نامعتبر است.'], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    try {
+        $stmt = $pdo->prepare("DELETE FROM `$table` WHERE `id` = :id");
+        $stmt->execute([':id' => $id]);
+
+        echo json_encode(['success' => true, 'message' => 'آیتم با موفقیت از دیتابیس حذف شد.'], JSON_UNESCAPED_UNICODE);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+    exit();
+}
+
+// 4. BULK SYNC ALL DATA
 if ($action === 'sync_all' && $input) {
     try {
         $pdo->beginTransaction();
-        
-        $entityTables = [
-            'physicians' => 'id',
-            'announcements' => 'id',
-            'news' => 'id',
-            'facilities' => 'id',
-            'classifieds' => 'id',
-            'education' => 'id',
-            'regulations' => 'id',
-            'services' => 'id',
-            'messages' => 'id',
-            'logs' => 'id'
-        ];
 
-        foreach ($entityTables as $table => $idCol) {
+        foreach ($allowedTables as $table) {
+            if ($table === 'admin_config') continue;
             if (isset($input[$table]) && is_array($input[$table])) {
                 $pdo->exec("DELETE FROM `$table`");
                 if (empty($input[$table])) continue;
 
                 foreach ($input[$table] as $item) {
-                    $keys = array_keys($item);
-                    $escapedCols = array_map(function($k) { return "`$k`"; }, $keys);
-                    $placeholders = array_map(function($k) { return ":$k"; }, $keys);
-
-                    $sql = "INSERT INTO `$table` (" . implode(', ', $escapedCols) . ") VALUES (" . implode(', ', $placeholders) . ")";
-                    $stmt = $pdo->prepare($sql);
-
+                    if (empty($item['id'])) continue;
+                    $cols = [];
+                    $placeholders = [];
                     $params = [];
+
                     foreach ($item as $k => $v) {
+                        if ($k === 'created_at') continue;
+                        $cols[] = "`$k`";
+                        $placeholders[] = ":$k";
+
                         if (is_array($v) || is_object($v)) {
                             $params[":$k"] = json_encode($v, JSON_UNESCAPED_UNICODE);
                         } elseif (is_bool($v)) {
@@ -108,13 +186,16 @@ if ($action === 'sync_all' && $input) {
                             $params[":$k"] = $v;
                         }
                     }
+
+                    $sql = "INSERT INTO `$table` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ")";
+                    $stmt = $pdo->prepare($sql);
                     $stmt->execute($params);
                 }
             }
         }
 
         $pdo->commit();
-        echo json_encode(['success' => true, 'message' => 'کلیه داده‌ها با دیتابیس MySQL همگام‌سازی شدند.'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['success' => true, 'message' => 'تمامی اطلاعات با موفقیت با دیتابیس MySQL همگام‌سازی شدند.'], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         $pdo->rollBack();
         echo json_encode(['success' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
@@ -122,4 +203,25 @@ if ($action === 'sync_all' && $input) {
     exit();
 }
 
-echo json_encode(['success' => false, 'error' => 'اکشن مشخص نشده است.'], JSON_UNESCAPED_UNICODE);
+// 5. SAVE SYSTEM SETTING (e.g., admin password)
+if ($action === 'save_setting' && $input) {
+    $key = isset($input['key']) ? trim($input['key']) : '';
+    $value = isset($input['value']) ? $input['value'] : '';
+
+    if (empty($key)) {
+        echo json_encode(['success' => false, 'error' => 'کلید تنظیمات نامعتبر است.'], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO `admin_config` (`setting_key`, `setting_value`) VALUES (:key, :val) ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`)");
+        $stmt->execute([':key' => $key, ':val' => (is_array($value) || is_object($value)) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value]);
+
+        echo json_encode(['success' => true, 'message' => 'تنظیمات در دیتابیس ذخیره شد.'], JSON_UNESCAPED_UNICODE);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+    exit();
+}
+
+echo json_encode(['success' => false, 'error' => 'دستور ارسالی نامعتبر است.'], JSON_UNESCAPED_UNICODE);

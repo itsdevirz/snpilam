@@ -17,15 +17,19 @@ import {
   ShieldCheck,
   ShieldAlert,
   Info,
+  Home,
+  Award,
+  Bell,
 } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: NavigationTab;
   onSelectTab: (tab: NavigationTab) => void;
   onSearchGlobal?: (query: string) => void;
+  onOpenCommandPalette?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearchGlobal }) => {
+export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearchGlobal, onOpenCommandPalette }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -55,32 +59,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
               پورتال رسمی سازمان نظام پزشکی جمهوری اسلامی ایران
             </span>
           </div>
-
-          {/* Left side (Persian end): Central phone & emergency access */}
-          <div className="flex items-center gap-4 text-slate-200 text-xs">
-            <a
-              href={`tel:${COUNCIL_INFO.phoneCentral.replace(/-/g, '')}`}
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
-            >
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="font-sans">مرکز تلفن: {COUNCIL_INFO.phoneCentral}</span>
-            </a>
-            <span className="text-slate-500">|</span>
-            <button
-              onClick={() => navigateTo('contact')}
-              className="hover:text-white transition-colors text-slate-300 hover:underline"
-            >
-              ثبت شکایات و نظرات
-            </button>
-            <span className="text-slate-500">|</span>
-            <button
-              onClick={() => navigateTo('admin')}
-              className="hover:text-amber-300 transition-colors text-amber-200 font-bold flex items-center gap-1"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
-              <span>پنل مدیریت</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -105,30 +83,38 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
           </div>
         </div>
 
-        {/* Global Search Input & Quick Contact */}
-        <div className="hidden lg:flex items-center gap-3">
-          <form onSubmit={handleSearchSubmit} className="relative w-80">
+        {/* Global Search Input & Quick Command Palette */}
+        <div className="hidden lg:flex items-center gap-2.5">
+          {onOpenCommandPalette && (
+            <button
+              onClick={onOpenCommandPalette}
+              className="flex items-center gap-2 text-xs bg-[#F5F7FA] hover:bg-[#E2E8F0] border border-[#CBD5E1] px-3 py-2 rounded-lg text-slate-700 transition-all font-medium group"
+              title="باز کردن جستجوی سریع با کیبورد (⌘K)"
+            >
+              <Search className="w-3.5 h-3.5 text-[#2463A6] group-hover:scale-110 transition-transform" />
+              <span>جستجوی هوشمند</span>
+              <kbd className="text-[10px] bg-white border border-slate-300 font-mono text-slate-600 px-1.5 py-0.5 rounded shadow-2xs">
+                ⌘K
+              </kbd>
+            </button>
+          )}
+
+          <form onSubmit={handleSearchSubmit} className="relative w-64">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجو در پزشکان، خدمات، قوانین یا آگهی‌ها..."
-              className="w-full text-xs bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg pr-9 pl-4 py-2 text-[#202B38] placeholder-[#667085] focus:outline-none focus:border-[#2463A6] focus:bg-white transition-all"
+              placeholder="جستجو در پزشکان و اخبار..."
+              className="w-full text-xs bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg pr-8 pl-3 py-2 text-[#202B38] placeholder-[#667085] focus:outline-none focus:border-[#2463A6] focus:bg-white transition-all"
             />
-            <Search className="w-4 h-4 text-[#667085] absolute right-3 top-2.5 pointer-events-none" />
-            <button
-              type="submit"
-              className="absolute left-1.5 top-1.5 text-[11px] bg-[#2463A6] text-white px-2.5 py-1 rounded hover:bg-[#17365D] transition-colors"
-            >
-              بیاب
-            </button>
+            <Search className="w-3.5 h-3.5 text-[#667085] absolute right-2.5 top-2.5 pointer-events-none" />
           </form>
 
           <button
             onClick={() => navigateTo('contact')}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#17365D] border border-[#CBD5E1] hover:border-[#17365D] px-3.5 py-2 rounded-lg bg-white hover:bg-[#F5F7FA] transition-colors"
+            className="flex items-center gap-1.5 text-xs font-medium text-[#17365D] border border-[#CBD5E1] hover:border-[#17365D] px-3.5 py-2 rounded-lg bg-white hover:bg-[#F5F7FA] transition-colors whitespace-nowrap shrink-0"
           >
-            <span>میز خدمت و تماس</span>
+            <span>میز خدمت</span>
           </button>
         </div>
 
@@ -343,7 +329,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
             </div>
           </div>
 
-          {/* عضویت / پیگیری سریع / مدیریت */}
+          {/* عضویت / پیگیری سریع */}
           <div className="flex items-center gap-2 py-2">
             <button
               onClick={() => navigateTo('services')}
@@ -351,160 +337,215 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
             >
               پیگیری درخواست‌ها
             </button>
-            <button
-              onClick={() => navigateTo('admin')}
-              className="bg-[#17365D] hover:bg-[#2463A6] text-white px-3 py-1.5 rounded font-bold transition-colors flex items-center gap-1.5"
-            >
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-300" />
-              <span>پنل مدیریت</span>
-            </button>
           </div>
         </div>
       </nav>
 
-      {/* 4. Mobile Menu Drawer */}
+      {/* 4. Optimized & Redesigned Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-[#E2E8F0] px-4 py-4 space-y-3 shadow-xl">
+        <div className="lg:hidden bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] px-4 py-5 space-y-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
           {/* Mobile search bar */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full mb-3">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجو در پزشکان، خدمات و قوانین..."
-              className="w-full text-sm bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg pr-9 pl-4 py-2.5 text-[#202B38]"
+              placeholder="جستجوی سریع در پزشکان، خدمات و قوانین..."
+              className="w-full text-xs bg-[#F5F7FA] border border-[#CBD5E1] rounded-xl pr-9 pl-4 py-2.5 text-[#202B38] placeholder-slate-400 focus:outline-none focus:border-[#2463A6] focus:bg-white transition-all shadow-2xs"
             />
-            <Search className="w-4 h-4 text-[#667085] absolute right-3 top-3.5" />
+            <Search className="w-4 h-4 text-[#2463A6] absolute right-3 top-3" />
           </form>
 
-          <div className="grid grid-cols-2 gap-2 text-sm font-medium">
-            <button
-              onClick={() => navigateTo('home')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'home' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              صفحه اصلی
-            </button>
-            <button
-              onClick={() => navigateTo('services')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'services' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              خدمات اعضا
-            </button>
-            <button
-              onClick={() => navigateTo('physicians')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'physicians' ? 'bg-[#EAF6EE] text-[#24845B] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              جستجوی پزشکان
-            </button>
-            <button
-              onClick={() => navigateTo('facilities')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'facilities' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              مراکز درمانی
-            </button>
-            <button
-              onClick={() => navigateTo('classifieds')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'classifieds' ? 'bg-[#FDF4E7] text-[#C77920] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              نیازمندی‌ها
-            </button>
-            <button
-              onClick={() => navigateTo('news')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'news' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              اخبار و اطلاعیه‌ها
-            </button>
-            <button
-              onClick={() => navigateTo('education')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'education' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              آموزش و بازآموزی
-            </button>
-            <button
-              onClick={() => navigateTo('regulations')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'regulations' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              قوانین و تعرفه‌ها
-            </button>
-            <button
-              onClick={() => navigateTo('licenses')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'licenses' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              امور پروانه‌ها
-            </button>
-            <button
-              onClick={() => navigateTo('tax')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'tax' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              امور مالیاتی
-            </button>
-            <button
-              onClick={() => navigateTo('advertising')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'advertising' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              تبلیغات پزشکی
-            </button>
-            <button
-              onClick={() => navigateTo('welfare')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'welfare' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              خدمات رفاهی
-            </button>
-            <button
-              onClick={() => navigateTo('departments')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'departments' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              کمیسیون‌ها
-            </button>
-            <button
-              onClick={() => navigateTo('about')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'about' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
-            >
-              درباره سازمان
-            </button>
+          {/* Section 1: خدمات اصلی و سامانه اعضا */}
+          <div className="space-y-2">
+            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
+              <span>خدمات اصلی و میز خدمات</span>
+              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
+              <button
+                onClick={() => navigateTo('home')}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
+                  currentTab === 'home'
+                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <Home className="w-4 h-4 shrink-0 text-sky-400" />
+                <span>صفحه اصلی</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('services')}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
+                  currentTab === 'services'
+                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <Award className="w-4 h-4 shrink-0 text-sky-400" />
+                <span>خدمات اعضا</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('physicians')}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
+                  currentTab === 'physicians'
+                    ? 'bg-[#24845B] text-white font-bold shadow-xs'
+                    : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/60'
+                }`}
+              >
+                <Search className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>جستجوی پزشکان</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('facilities')}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
+                  currentTab === 'facilities'
+                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <Building2 className="w-4 h-4 shrink-0 text-slate-500" />
+                <span>مراکز درمانی</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('classifieds')}
+                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all col-span-2 ${
+                  currentTab === 'classifieds'
+                    ? 'bg-[#C77920] text-white font-bold shadow-xs'
+                    : 'bg-amber-50/80 hover:bg-amber-100 text-amber-900 border border-amber-200/60'
+                }`}
+              >
+                <Briefcase className="w-4 h-4 shrink-0 text-[#C77920]" />
+                <span>نیازمندی‌های کاربری و فرصت‌های شغلی</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section 2: اطلاع‌رسانی، بخشنامه‌ها و آموزش */}
+          <div className="space-y-2">
+            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
+              <span>اطلاع‌رسانی و آموزش</span>
+              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
+            </h4>
+            <div className="grid grid-cols-3 gap-2 text-xs font-medium">
+              <button
+                onClick={() => navigateTo('news')}
+                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
+                  currentTab === 'news'
+                    ? 'bg-[#17365D] text-white font-bold'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <Bell className="w-4 h-4 text-[#2463A6]" />
+                <span>اخبار</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('education')}
+                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
+                  currentTab === 'education'
+                    ? 'bg-[#17365D] text-white font-bold'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4 text-[#2463A6]" />
+                <span>آموزش CME</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('regulations')}
+                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
+                  currentTab === 'regulations'
+                    ? 'bg-[#17365D] text-white font-bold'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
+                }`}
+              >
+                <FileText className="w-4 h-4 text-[#2463A6]" />
+                <span>قوانین</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Section 3: امور تخصصی و سازمان */}
+          <div className="space-y-2">
+            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
+              <span>امور تخصصی و ساختار</span>
+              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
+              <button
+                onClick={() => navigateTo('licenses')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'licenses' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>امور پروانه‌ها</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('tax')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'tax' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <Scale className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>امور مالیاتی</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('advertising')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'advertising' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>مجوز تبلیغات</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('welfare')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'welfare' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <Briefcase className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>خدمات رفاهی</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('departments')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'departments' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <Building2 className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>کمیسیون‌ها</span>
+              </button>
+
+              <button
+                onClick={() => navigateTo('about')}
+                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
+                  currentTab === 'about' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
+                }`}
+              >
+                <Info className="w-3.5 h-3.5 text-[#2463A6]" />
+                <span>درباره سازمان</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
             <button
               onClick={() => navigateTo('contact')}
-              className={`p-2.5 rounded-lg text-right ${
-                currentTab === 'contact' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-[#F5F7FA]'
-              }`}
+              className="w-full bg-[#17365D] hover:bg-[#2463A6] text-white font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
-              تماس با سازمان
-            </button>
-            <button
-              onClick={() => navigateTo('admin')}
-              className={`p-2.5 rounded-lg text-right font-bold text-amber-800 bg-amber-50 border border-amber-200 ${
-                currentTab === 'admin' ? 'bg-amber-100' : ''
-              }`}
-            >
-              ⚙️ پنل مدیریت ارشد
+              <Phone className="w-4 h-4" />
+              <span>ارتباط و نشانی سازمان</span>
             </button>
           </div>
         </div>

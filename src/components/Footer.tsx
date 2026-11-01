@@ -191,10 +191,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
             <button onClick={() => navigate('contact')} className="hover:text-white transition-colors">
               میز خدمت الکترونیک
             </button>
-            <span>·</span>
-            <button onClick={() => navigate('admin')} className="text-amber-300 hover:text-amber-200 font-bold transition-colors">
-              پنل مدیریت سامانه
-            </button>
           </div>
         </div>
       </div>

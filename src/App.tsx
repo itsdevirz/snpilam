@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavigationTab, Announcement, NewsItem, ServiceItem } from './types';
 import { DataProvider } from './context/DataContext';
+import { ToastProvider } from './components/Toast';
+import { CommandPalette } from './components/CommandPalette';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomeView } from './views/HomeView';
@@ -30,8 +32,31 @@ export default function App() {
   const [selectedNewsId, setSelectedNewsId] = useState<string | undefined>();
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<string | undefined>();
 
+  React.useEffect(() => {
+    const handleUrlRoute = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      if (path === '/admin' || path === '/admin/' || hash === '#admin') {
+        setCurrentTab('admin');
+      }
+    };
+
+    handleUrlRoute();
+    window.addEventListener('popstate', handleUrlRoute);
+    return () => window.removeEventListener('popstate', handleUrlRoute);
+  }, []);
+
   const handleSelectTab = (tab: NavigationTab) => {
     setCurrentTab(tab);
+    if (tab === 'admin') {
+      try {
+        window.history.pushState({}, '', '/admin');
+      } catch (e) {}
+    } else if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
+      try {
+        window.history.pushState({}, '', '/');
+      } catch (e) {}
+    }
     // Reset specific item targets when changing tab manually
     setSelectedServiceId(undefined);
     setSelectedNewsId(undefined);
@@ -65,6 +90,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
   const handleGlobalSearch = (query: string) => {
     setPhysicianSearchQuery(query);
     setCurrentTab('physicians');
@@ -73,72 +100,85 @@ export default function App() {
 
   return (
     <DataProvider>
-      <div className="min-h-screen flex flex-col bg-[#F5F7FA] text-[#202B38] font-sans antialiased selection:bg-[#2463A6] selection:text-white">
-        {/* Institutional Top & Main Header */}
-        <Header
-          currentTab={currentTab}
-          onSelectTab={handleSelectTab}
-          onSearchGlobal={handleGlobalSearch}
-        />
+      <ToastProvider>
+        <div className="min-h-screen flex flex-col bg-[#F5F7FA] text-[#202B38] font-sans antialiased selection:bg-[#2463A6] selection:text-white">
+          {/* Institutional Top & Main Header */}
+          <Header
+            currentTab={currentTab}
+            onSelectTab={handleSelectTab}
+            onSearchGlobal={handleGlobalSearch}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          />
 
-        {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8">
-          {currentTab === 'home' && (
-            <HomeView
-              onSelectTab={handleSelectTab}
-              onOpenAnnouncement={handleOpenAnnouncement}
-              onOpenNews={handleOpenNews}
-              onOpenService={handleOpenService}
-              onQuickPhysicianSearch={handleQuickPhysicianSearch}
-            />
-          )}
+          {/* Emil Kowalski Cmd+K Command Palette */}
+          <CommandPalette
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            onSelectTab={handleSelectTab}
+            onOpenAnnouncement={handleOpenAnnouncement}
+            onOpenNews={handleOpenNews}
+            onOpenService={handleOpenService}
+          />
 
-          {currentTab === 'services' && (
-            <ServicesView initialServiceId={selectedServiceId} />
-          )}
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8">
+            {currentTab === 'home' && (
+              <HomeView
+                onSelectTab={handleSelectTab}
+                onOpenAnnouncement={handleOpenAnnouncement}
+                onOpenNews={handleOpenNews}
+                onOpenService={handleOpenService}
+                onQuickPhysicianSearch={handleQuickPhysicianSearch}
+              />
+            )}
 
-          {currentTab === 'physicians' && (
-            <PhysiciansView
-              initialSearchQuery={physicianSearchQuery}
-              initialSpecialty={physicianSpecialty}
-            />
-          )}
+            {currentTab === 'services' && (
+              <ServicesView initialServiceId={selectedServiceId} />
+            )}
 
-          {currentTab === 'facilities' && <FacilitiesView />}
+            {currentTab === 'physicians' && (
+              <PhysiciansView
+                initialSearchQuery={physicianSearchQuery}
+                initialSpecialty={physicianSpecialty}
+              />
+            )}
 
-          {currentTab === 'classifieds' && <ClassifiedsView />}
+            {currentTab === 'facilities' && <FacilitiesView />}
 
-          {currentTab === 'education' && <EducationView />}
+            {currentTab === 'classifieds' && <ClassifiedsView />}
 
-          {currentTab === 'regulations' && <RegulationsView />}
+            {currentTab === 'education' && <EducationView />}
 
-          {currentTab === 'licenses' && <LicensesView />}
+            {currentTab === 'regulations' && <RegulationsView />}
 
-          {currentTab === 'tax' && <TaxAffairsView />}
+            {currentTab === 'licenses' && <LicensesView />}
 
-          {currentTab === 'advertising' && <AdvertisingView />}
+            {currentTab === 'tax' && <TaxAffairsView />}
 
-          {currentTab === 'welfare' && <WelfareView />}
+            {currentTab === 'advertising' && <AdvertisingView />}
 
-          {currentTab === 'departments' && <DepartmentsView />}
+            {currentTab === 'welfare' && <WelfareView />}
 
-          {currentTab === 'news' && (
-            <NewsView
-              initialNewsId={selectedNewsId}
-              initialAnnouncementId={selectedAnnouncementId}
-            />
-          )}
+            {currentTab === 'departments' && <DepartmentsView />}
 
-          {currentTab === 'about' && <AboutView />}
+            {currentTab === 'news' && (
+              <NewsView
+                initialNewsId={selectedNewsId}
+                initialAnnouncementId={selectedAnnouncementId}
+              />
+            )}
 
-          {currentTab === 'contact' && <ContactView />}
+            {currentTab === 'about' && <AboutView />}
 
-          {currentTab === 'admin' && <AdminView />}
-        </main>
+            {currentTab === 'contact' && <ContactView />}
 
-        {/* Institutional Footer */}
-        <Footer onSelectTab={handleSelectTab} />
-      </div>
+            {currentTab === 'admin' && <AdminView />}
+          </main>
+
+          {/* Institutional Footer */}
+          <Footer onSelectTab={handleSelectTab} />
+        </div>
+      </ToastProvider>
     </DataProvider>
   );
 }

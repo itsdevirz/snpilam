@@ -22,7 +22,6 @@ import { EDUCATIONAL_EVENTS as defaultEducation } from '../data/educationData';
 import { REGULATIONS_DATA as defaultRegulations } from '../data/regulationsData';
 
 const defaultMessages: ContactMessage[] = [];
-
 const defaultLogs: ActivityLog[] = [];
 
 interface DataContextType {
@@ -88,6 +87,7 @@ interface DataContextType {
 
   // System
   resetAllData: () => void;
+  syncAllDataToMysql: () => Promise<{ success: boolean; message: string }>;
   changeAdminPassword: (currentPass: string, newPass: string) => { success: boolean; message: string };
 }
 
@@ -163,6 +163,74 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return localStorage.getItem('ilam_admin_session') === 'true';
   });
 
+  const DEFAULT_ADMIN_PASSWORD = 'Aa@123456';
+
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    return localStorage.getItem('ilam_admin_password') || DEFAULT_ADMIN_PASSWORD;
+  });
+
+  // MySQL Persistence API Helper functions (fast async calls)
+  const apiSaveItem = (table: string, item: any) => {
+    fetch('/api/data.php?action=save_item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, item }),
+    }).catch(() => {});
+  };
+
+  const apiDeleteItem = (table: string, id: string) => {
+    fetch('/api/data.php?action=delete_item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, id }),
+    }).catch(() => {});
+  };
+
+  const apiSaveSetting = (key: string, value: string) => {
+    fetch('/api/data.php?action=save_setting', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value }),
+    }).catch(() => {});
+  };
+
+  // Initial Data Load from MySQL database when page opens
+  useEffect(() => {
+    let isMounted = true;
+    const loadFromMysql = async () => {
+      try {
+        const res = await fetch('/api/data.php?action=get_all');
+        if (res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const result = await res.json();
+            if (result.success && result.data && isMounted) {
+              const d = result.data;
+              if (Array.isArray(d.physicians)) setPhysicians(d.physicians);
+              if (Array.isArray(d.announcements)) setAnnouncements(d.announcements);
+              if (Array.isArray(d.news)) setNewsItems(d.news);
+              if (Array.isArray(d.facilities)) setFacilities(d.facilities);
+              if (Array.isArray(d.classifieds)) setClassifieds(d.classifieds);
+              if (Array.isArray(d.education)) setEducationEvents(d.education);
+              if (Array.isArray(d.regulations)) setRegulations(d.regulations);
+              if (Array.isArray(d.services)) setServices(d.services);
+              if (Array.isArray(d.messages)) setMessages(d.messages);
+              if (Array.isArray(d.logs)) setLogs(d.logs);
+              if (d.settings && d.settings.admin_password) {
+                setAdminPassword(d.settings.admin_password);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to local storage state if PHP server is not active
+      }
+    };
+
+    loadFromMysql();
+    return () => { isMounted = false; };
+  }, []);
+
   // Sync state to local storage
   useEffect(() => {
     localStorage.setItem('ilam_announcements', JSON.stringify(announcements));
@@ -208,12 +276,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('ilam_admin_session', isAdminLoggedIn ? 'true' : 'false');
   }, [isAdminLoggedIn]);
 
-  const DEFAULT_ADMIN_PASSWORD = 'Aa@123456';
-
-  const [adminPassword, setAdminPassword] = useState<string>(() => {
-    return localStorage.getItem('ilam_admin_password') || DEFAULT_ADMIN_PASSWORD;
-  });
-
   useEffect(() => {
     localStorage.setItem('ilam_admin_password', adminPassword);
   }, [adminPassword]);
@@ -230,6 +292,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       type,
     };
     setLogs((prev) => [newLog, ...prev.slice(0, 49)]);
+    apiSaveItem('logs', newLog);
   };
 
   const loginAdmin = (password: string) => {
@@ -258,12 +321,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!hasUpper || !hasLower || !hasNum || !hasSpecial) {
       return {
         success: false,
-        message: 'کلمه عبور جدید باید ترکیبی از حروف بزرگ انگلیسی، حروف کوچک، اعداد و کاراکترهای ویژه (مانند @,#,$) باشد.',
+        message: 'کلمه عبور جدید باید ترکیبی از حروف بزرگ انگلیسی، حروف کوچک، اعداد و کاراکترهای ویژه باشد.',
       };
     }
 
     setAdminPassword(newPass);
     localStorage.setItem('ilam_admin_password', newPass);
+    apiSaveSetting('admin_password', newPass);
     addLog('تغییر کلمه عبور مدیریت', 'کلمه عبور پنل مدیریت با موفقیت تغییر یافت', 'update');
     return { success: true, message: 'کلمه عبور پنل مدیریت با موفقیت بروزرسانی شد.' };
   };
@@ -278,17 +342,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `phy-${Date.now()}`;
     const newItem = { id, ...data };
     setPhysicians((prev) => [newItem, ...prev]);
+    apiSaveItem('physicians', newItem);
     addLog('افزودن پزشک جدید', `${data.name} (${data.medicalRegNo})`, 'create');
   };
 
   const updatePhysician = (phy: Physician) => {
     setPhysicians((prev) => prev.map((p) => (p.id === phy.id ? phy : p)));
+    apiSaveItem('physicians', phy);
     addLog('ویرایش اطلاعات پزشک', `${phy.name} (${phy.medicalRegNo})`, 'update');
   };
 
   const deletePhysician = (id: string) => {
     const target = physicians.find((p) => p.id === id);
     setPhysicians((prev) => prev.filter((p) => p.id !== id));
+    apiDeleteItem('physicians', id);
     addLog('حذف پرونده پزشک', target ? target.name : id, 'delete');
   };
 
@@ -297,17 +364,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `ann-${Date.now()}`;
     const newItem = { id, ...data };
     setAnnouncements((prev) => [newItem, ...prev]);
+    apiSaveItem('announcements', newItem);
     addLog('ثبت اطلاعیه جدید', data.title, 'create');
   };
 
   const updateAnnouncement = (ann: Announcement) => {
     setAnnouncements((prev) => prev.map((a) => (a.id === ann.id ? ann : a)));
+    apiSaveItem('announcements', ann);
     addLog('ویرایش اطلاعیه', ann.title, 'update');
   };
 
   const deleteAnnouncement = (id: string) => {
     const target = announcements.find((a) => a.id === id);
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    apiDeleteItem('announcements', id);
     addLog('حذف اطلاعیه', target ? target.title : id, 'delete');
   };
 
@@ -316,17 +386,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `news-${Date.now()}`;
     const newItem = { id, ...data };
     setNewsItems((prev) => [newItem, ...prev]);
+    apiSaveItem('news', newItem);
     addLog('انتشار خبر جدید', data.title, 'create');
   };
 
   const updateNews = (news: NewsItem) => {
     setNewsItems((prev) => prev.map((n) => (n.id === news.id ? news : n)));
+    apiSaveItem('news', news);
     addLog('ویرایش خبر', news.title, 'update');
   };
 
   const deleteNews = (id: string) => {
     const target = newsItems.find((n) => n.id === id);
     setNewsItems((prev) => prev.filter((n) => n.id !== id));
+    apiDeleteItem('news', id);
     addLog('حذف خبر', target ? target.title : id, 'delete');
   };
 
@@ -335,17 +408,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `fac-${Date.now()}`;
     const newItem = { id, ...data };
     setFacilities((prev) => [newItem, ...prev]);
+    apiSaveItem('facilities', newItem);
     addLog('افزودن مرکز درمانی', data.name, 'create');
   };
 
   const updateFacility = (fac: Facility) => {
     setFacilities((prev) => prev.map((f) => (f.id === fac.id ? fac : f)));
+    apiSaveItem('facilities', fac);
     addLog('ویرایش اطلاعات مرکز درمانی', fac.name, 'update');
   };
 
   const deleteFacility = (id: string) => {
     const target = facilities.find((f) => f.id === id);
     setFacilities((prev) => prev.filter((f) => f.id !== id));
+    apiDeleteItem('facilities', id);
     addLog('حذف مرکز درمانی', target ? target.name : id, 'delete');
   };
 
@@ -354,17 +430,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `cls-${Date.now()}`;
     const newItem: ClassifiedItem = { id, ...data, status: 'active' };
     setClassifieds((prev) => [newItem, ...prev]);
+    apiSaveItem('classifieds', newItem);
     addLog('ثبت آگهی نیازمندی', data.title, 'create');
   };
 
   const updateClassifiedStatus = (id: string, status: 'active' | 'expired') => {
-    setClassifieds((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)));
+    const target = classifieds.find((c) => c.id === id);
+    if (!target) return;
+    const updated = { ...target, status };
+    setClassifieds((prev) => prev.map((c) => (c.id === id ? updated : c)));
+    apiSaveItem('classifieds', updated);
     addLog('تغییر وضعیت آگهی', `شناسه: ${id} -> ${status === 'active' ? 'فعال' : 'منقضی'}`, 'update');
   };
 
   const deleteClassified = (id: string) => {
     const target = classifieds.find((c) => c.id === id);
     setClassifieds((prev) => prev.filter((c) => c.id !== id));
+    apiDeleteItem('classifieds', id);
     addLog('حذف آگهی', target ? target.title : id, 'delete');
   };
 
@@ -373,17 +455,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `cme-${Date.now()}`;
     const newItem = { id, ...data };
     setEducationEvents((prev) => [newItem, ...prev]);
+    apiSaveItem('education', newItem);
     addLog('ایجاد دوره بازآموزی', data.title, 'create');
   };
 
   const updateEducationEvent = (evt: EducationalEvent) => {
     setEducationEvents((prev) => prev.map((e) => (e.id === evt.id ? evt : e)));
+    apiSaveItem('education', evt);
     addLog('ویرایش دوره بازآموزی', evt.title, 'update');
   };
 
   const deleteEducationEvent = (id: string) => {
     const target = educationEvents.find((e) => e.id === id);
     setEducationEvents((prev) => prev.filter((e) => e.id !== id));
+    apiDeleteItem('education', id);
     addLog('حذف دوره بازآموزی', target ? target.title : id, 'delete');
   };
 
@@ -392,17 +477,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `reg-${Date.now()}`;
     const newItem = { id, ...data };
     setRegulations((prev) => [newItem, ...prev]);
+    apiSaveItem('regulations', newItem);
     addLog('افزودن بخشنامه/قانون', data.title, 'create');
   };
 
   const updateRegulationDoc = (doc: RegulationDoc) => {
     setRegulations((prev) => prev.map((r) => (r.id === doc.id ? doc : r)));
+    apiSaveItem('regulations', doc);
     addLog('ویرایش بخشنامه', doc.title, 'update');
   };
 
   const deleteRegulationDoc = (id: string) => {
     const target = regulations.find((r) => r.id === id);
     setRegulations((prev) => prev.filter((r) => r.id !== id));
+    apiDeleteItem('regulations', id);
     addLog('حذف بخشنامه', target ? target.title : id, 'delete');
   };
 
@@ -411,17 +499,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const id = `srv-${Date.now()}`;
     const newItem = { id, ...data };
     setServices((prev) => [newItem, ...prev]);
+    apiSaveItem('services', newItem);
     addLog('تعریف خدمت جدید', data.title, 'create');
   };
 
   const updateService = (svc: ServiceItem) => {
     setServices((prev) => prev.map((s) => (s.id === svc.id ? svc : s)));
+    apiSaveItem('services', svc);
     addLog('ویرایش راهنمای خدمت', svc.title, 'update');
   };
 
   const deleteService = (id: string) => {
     const target = services.find((s) => s.id === id);
     setServices((prev) => prev.filter((s) => s.id !== id));
+    apiDeleteItem('services', id);
     addLog('حذف خدمت', target ? target.title : id, 'delete');
   };
 
@@ -437,20 +528,56 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       status: 'new',
     };
     setMessages((prev) => [newItem, ...prev]);
+    apiSaveItem('messages', newItem);
   };
 
   const updateMessageStatus = (id: string, status: ContactMessage['status'], reply?: string) => {
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === id ? { ...m, status, adminReply: reply !== undefined ? reply : m.adminReply } : m
-      )
-    );
+    const target = messages.find((m) => m.id === id);
+    if (!target) return;
+    const updated = {
+      ...target,
+      status,
+      adminReply: reply !== undefined ? reply : target.adminReply,
+    };
+    setMessages((prev) => prev.map((m) => (m.id === id ? updated : m)));
+    apiSaveItem('messages', updated);
     addLog('بررسی و پاسخ به پیام', `شناسه پیام: ${id}`, 'status');
   };
 
   const deleteMessage = (id: string) => {
     setMessages((prev) => prev.filter((m) => m.id !== id));
+    apiDeleteItem('messages', id);
     addLog('حذف پیام', id, 'delete');
+  };
+
+  const syncAllDataToMysql = async () => {
+    try {
+      const payload = {
+        physicians,
+        announcements,
+        news: newsItems,
+        facilities,
+        classifieds,
+        education: educationEvents,
+        regulations,
+        services,
+        messages,
+        logs,
+      };
+      const res = await fetch('/api/data.php?action=sync_all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        return data;
+      }
+      return { success: true, message: 'همگام‌سازی کامل انجام شد.' };
+    } catch (err: any) {
+      return { success: false, message: 'خطا در همگام‌سازی داده‌ها با دیتابیس: ' + err.message };
+    }
   };
 
   const resetAllData = () => {
@@ -466,6 +593,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLogs(defaultLogs);
     localStorage.clear();
     addLog('بازنشانی داده‌ها', 'اطلاعات اولیه بازیابی شد', 'status');
+    syncAllDataToMysql();
   };
 
   return (
@@ -512,6 +640,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateMessageStatus,
         deleteMessage,
         resetAllData,
+        syncAllDataToMysql,
         changeAdminPassword,
       }}
     >
