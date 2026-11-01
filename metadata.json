@@ -1,0 +1,7 @@
+{
+  "name": "Ilam Medical Council Portal",
+  "description": "پورتال رسمی و سامانه خدمات الکترونیک سازمان نظام پزشکی استان ایلام",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

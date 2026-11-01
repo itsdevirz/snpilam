@@ -1,0 +1,26 @@
+# =========================================================
+# Ilam Medical Council Portal - Apache .htaccess for cPanel
+# =========================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Do not rewrite API requests to PHP scripts
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteRule ^ - [L]
+
+  # Existing file or directory check
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Route all other SPA pages to index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# MIME type headers for modern browsers
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+</IfModule>
