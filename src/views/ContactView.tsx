@@ -15,6 +15,9 @@ import {
   FileCheck,
 } from 'lucide-react';
 
+import { isValidIranianPhone, formatPhoneInput } from '../utils/phoneUtils';
+import { sanitizeTextInput } from '../utils/security';
+
 export const ContactView: React.FC = () => {
   const { addMessage, sitePhone } = useDataContext();
   const [formType, setFormType] = useState<'inquiry' | 'suggestion' | 'complaint'>('inquiry');
@@ -28,6 +31,7 @@ export const ContactView: React.FC = () => {
     message: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedCode, setSubmittedCode] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,18 +40,29 @@ export const ContactView: React.FC = () => {
       setErrorMsg('لطفاً نام، شماره تماس و متن پیام را تکمیل نمایید.');
       return;
     }
+    if (!isValidIranianPhone(formData.phone)) {
+      setErrorMsg('شماره تلفن وارد شده معتبر نیست. شماره تلفن باید ۱۱ رقمی و با ۰ شروع شود (مثال: 09181234567 یا 08433340000).');
+      return;
+    }
     setErrorMsg('');
 
-    addMessage({
-      fullName: formData.fullName,
-      phone: formData.phone,
-      email: formData.email,
-      department: formData.department,
-      subject: formData.subject || (formType === 'complaint' ? 'شکایت انتظامی' : 'درخواست اداری'),
-      message: formData.message,
+    const cleanName = sanitizeTextInput(formData.fullName);
+    const cleanEmail = sanitizeTextInput(formData.email);
+    const cleanDept = sanitizeTextInput(formData.department);
+    const cleanSubject = sanitizeTextInput(formData.subject || (formType === 'complaint' ? 'شکایت انتظامی' : 'درخواست اداری'));
+    const cleanMsg = sanitizeTextInput(formData.message);
+
+    const code = addMessage({
+      fullName: cleanName,
+      phone: formData.phone.trim(),
+      email: cleanEmail,
+      department: cleanDept,
+      subject: cleanSubject,
+      message: cleanMsg,
       type: formType,
     });
 
+    setSubmittedCode(code);
     setIsSubmitted(true);
   };
 
@@ -217,19 +232,27 @@ export const ContactView: React.FC = () => {
           </div>
 
           {isSubmitted ? (
-            <div className="bg-[#EAF6EE] border border-[#24845B]/40 rounded-xl p-6 text-center space-y-3 text-xs">
+            <div className="bg-[#EAF6EE] border border-[#24845B]/40 rounded-xl p-6 text-center space-y-4 text-xs">
               <CheckCircle className="w-12 h-12 text-[#24845B] mx-auto" />
               <h4 className="text-base font-bold text-[#24845B]">
-                پیام شما با موفقیت در سامانه ثبت گردید
+                پیام شما با موفقیت در دیتابیس سامانه ثبت گردید
               </h4>
-              <p className="text-slate-700 leading-relaxed max-w-md mx-auto">
-                کد رهگیری پیام: <strong className="font-mono text-slate-900">MSG-ILM-1405-9201</strong>.
-                کارشناسان دبیرخانه نظام پزشکی ایلام در ساعات اداری پیام شما را بررسی نموده و نتیجه را
-                اطلاع خواهند داد.
+              <div className="bg-white border border-[#24845B]/30 p-3.5 rounded-lg max-w-md mx-auto space-y-1">
+                <span className="text-slate-500 text-[11px] block">کد رهگیری اختصاصی درخواست:</span>
+                <span className="font-mono text-base font-bold text-[#17365D] tracking-wider dir-ltr inline-block">
+                  {submittedCode}
+                </span>
+                <p className="text-[11px] text-slate-500 pt-1">
+                  می‌توانید با وارد کردن این کد در منوی «خدمات الکترونیک - پیگیری و استعلام»، وضعیت پرونده را به صورت زنده پیگیری نمایید.
+                </p>
+              </div>
+              <p className="text-slate-700 leading-relaxed max-w-md mx-auto text-[11px]">
+                کارشناسان دبیرخانه نظام پزشکی ایلام در ساعات اداری پیام شما را بررسی نموده و در صورت لزوم تماس خواهند گرفت.
               </p>
               <button
                 onClick={() => {
                   setIsSubmitted(false);
+                  setSubmittedCode('');
                   setFormData({
                     fullName: '',
                     phone: '',
@@ -240,7 +263,7 @@ export const ContactView: React.FC = () => {
                     message: '',
                   });
                 }}
-                className="bg-[#24845B] text-white px-5 py-2 rounded-lg font-bold mt-2"
+                className="bg-[#24845B] text-white px-5 py-2.5 rounded-lg font-bold mt-2 hover:bg-[#1b6746] transition-colors"
               >
                 ارسال پیام جدید
               </button>
@@ -276,11 +299,13 @@ export const ContactView: React.FC = () => {
                   <input
                     type="tel"
                     required
+                    maxLength={11}
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="مثال: ۰۹۱۸۱۲۳۴۵۶۷"
-                    className="w-full bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 focus:bg-white focus:outline-none focus:border-[#2463A6]"
+                    onChange={(e) => setFormData({ ...formData, phone: formatPhoneInput(e.target.value) })}
+                    placeholder="مثال: 09181234567"
+                    className="w-full bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 focus:bg-white focus:outline-none focus:border-[#2463A6] font-mono text-left dir-ltr"
                   />
+                  <span className="text-[10px] text-slate-400 mt-1 block">شماره تلفن ۱۱ رقمی همراه با پیش‌شماره (مثال: ۰۹۱۸۱۲۳۴۵۶۷)</span>
                 </div>
               </div>
 

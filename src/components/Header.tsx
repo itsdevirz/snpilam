@@ -29,6 +29,8 @@ interface HeaderProps {
   onOpenCommandPalette?: () => void;
 }
 
+import { sanitizeSearchQuery } from '../utils/security';
+
 export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearchGlobal, onOpenCommandPalette }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,8 +38,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim() && onSearchGlobal) {
-      onSearchGlobal(searchQuery.trim());
+    const cleaned = sanitizeSearchQuery(searchQuery);
+    if (cleaned && onSearchGlobal) {
+      onSearchGlobal(cleaned);
     }
   };
 

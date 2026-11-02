@@ -16,6 +16,8 @@ import {
   CheckCircle,
   ChevronLeft,
 } from 'lucide-react';
+import { isValidIranianPhone, formatPhoneInput } from '../utils/phoneUtils';
+import { sanitizeSearchQuery, sanitizeTextInput } from '../utils/security';
 
 export const ClassifiedsView: React.FC = () => {
   const { classifieds, addClassified } = useDataContext();
@@ -52,14 +54,15 @@ export const ClassifiedsView: React.FC = () => {
   const counties = ['همه شهرستان‌ها', ...COUNCIL_INFO.jurisdictionCounties];
 
   const filteredClassifieds = useMemo(() => {
+    const cleanSearch = sanitizeSearchQuery(searchTerm);
     return classifieds.filter((c) => {
       if (!showExpired && c.status === 'expired') return false;
 
       const matchSearch =
-        !searchTerm.trim() ||
-        c.title.includes(searchTerm) ||
-        c.description.includes(searchTerm) ||
-        c.contactName.includes(searchTerm);
+        !cleanSearch ||
+        c.title.includes(cleanSearch) ||
+        c.description.includes(cleanSearch) ||
+        c.contactName.includes(cleanSearch);
 
       const matchCategory =
         !selectedCategory ||
@@ -75,29 +78,36 @@ export const ClassifiedsView: React.FC = () => {
     });
   }, [classifieds, searchTerm, selectedCategory, selectedCounty, showExpired]);
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSubmitAd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!submitForm.title || !submitForm.contactPhone || !submitForm.description) {
-      alert('لطفاً عنوان، شماره تماس و شرح آگهی را تکمیل فرمایید.');
+      setErrorMsg('لطفاً عنوان، شماره تماس و شرح آگهی را تکمیل فرمایید.');
       return;
     }
+    if (!isValidIranianPhone(submitForm.contactPhone)) {
+      setErrorMsg('شماره تلفن وارد شده معتبر نیست. شماره تلفن باید ۱۱ رقمی و با ۰ شروع شود (مثال: 09181234567 یا 08433340000).');
+      return;
+    }
+    setErrorMsg('');
     const today = new Date().toLocaleDateString('fa-IR');
     const futureDate = new Date();
     futureDate.setMonth(futureDate.getMonth() + 1);
     const expDate = futureDate.toLocaleDateString('fa-IR');
 
     addClassified({
-      title: submitForm.title,
+      title: sanitizeTextInput(submitForm.title),
       category: submitForm.category,
-      county: submitForm.county,
-      city: submitForm.city || submitForm.county,
-      specialtyGroup: submitForm.specialtyGroup || 'عمومی',
-      description: submitForm.description,
+      county: sanitizeTextInput(submitForm.county),
+      city: sanitizeTextInput(submitForm.city || submitForm.county),
+      specialtyGroup: sanitizeTextInput(submitForm.specialtyGroup || 'عمومی'),
+      description: sanitizeTextInput(submitForm.description),
       publishDate: today,
       expirationDate: expDate,
-      contactName: submitForm.contactName,
-      contactPhone: submitForm.contactPhone,
-      compensation: submitForm.compensation,
+      contactName: sanitizeTextInput(submitForm.contactName),
+      contactPhone: submitForm.contactPhone.trim(),
+      compensation: sanitizeTextInput(submitForm.compensation),
     });
 
     setFormSubmitted(true);
@@ -371,6 +381,12 @@ export const ClassifiedsView: React.FC = () => {
               </div>
             ) : (
               <form onSubmit={handleSubmitAd} className="space-y-4 text-xs">
+                {errorMsg && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{errorMsg}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-slate-700 font-medium mb-1">
@@ -470,12 +486,13 @@ export const ClassifiedsView: React.FC = () => {
                     <input
                       type="tel"
                       required
+                      maxLength={11}
                       value={submitForm.contactPhone}
                       onChange={(e) =>
-                        setSubmitForm({ ...submitForm, contactPhone: e.target.value })
+                        setSubmitForm({ ...submitForm, contactPhone: formatPhoneInput(e.target.value) })
                       }
-                      placeholder="مثال: ۰۹۱۸۱۲۳۴۵۶۷"
-                      className="w-full bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 focus:bg-white focus:outline-none focus:border-[#C77920]"
+                      placeholder="مثال: 09181234567"
+                      className="w-full bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg px-3 py-2 text-slate-900 focus:bg-white focus:outline-none focus:border-[#C77920] font-mono text-left dir-ltr"
                     />
                   </div>
                 </div>

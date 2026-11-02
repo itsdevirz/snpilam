@@ -17,6 +17,8 @@ import {
   X,
   AlertCircle,
 } from 'lucide-react';
+import { isValidIranianPhone, formatPhoneInput } from '../utils/phoneUtils';
+import { sanitizeTextInput, sanitizeSearchQuery } from '../utils/security';
 
 export const FacilitiesView: React.FC = () => {
   const { facilities, requestFacilityRegistration } = useDataContext();
@@ -46,13 +48,14 @@ export const FacilitiesView: React.FC = () => {
   }, [facilities]);
 
   const filteredFacilities = useMemo(() => {
+    const cleanSearch = sanitizeSearchQuery(searchTerm);
     return approvedFacilities.filter((f) => {
       const matchSearch =
-        !searchTerm.trim() ||
-        f.name.includes(searchTerm) ||
-        f.address.includes(searchTerm) ||
-        f.manager.includes(searchTerm) ||
-        f.services.some((s) => s.includes(searchTerm));
+        !cleanSearch ||
+        f.name.includes(cleanSearch) ||
+        f.address.includes(cleanSearch) ||
+        f.manager.includes(cleanSearch) ||
+        f.services.some((s) => s.includes(cleanSearch));
 
       const matchType =
         !selectedType || selectedType === 'همه انواع مراکز' || f.type === selectedType;
@@ -279,20 +282,27 @@ const FacilityRegistrationModal: React.FC<{
     servicesStr: 'اورژانس، ویزیت پزشک عمومی، تزریقات و پانسمان',
   });
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const services = form.servicesStr.split(',').map((s) => s.trim()).filter(Boolean);
+    if (!isValidIranianPhone(form.phone)) {
+      setErrorMsg('شماره تلفن وارد شده معتبر نیست. شماره تلفن باید ۱۱ رقمی و با ۰ شروع شود (مثال: 08432220000 یا 09181234567).');
+      return;
+    }
+    setErrorMsg('');
+    const services = form.servicesStr.split(',').map((s) => sanitizeTextInput(s)).filter(Boolean);
     onSubmit({
-      name: form.name,
+      name: sanitizeTextInput(form.name),
       type: form.type,
-      manager: form.manager,
-      technicalSupervisor: form.technicalSupervisor,
+      manager: sanitizeTextInput(form.manager),
+      technicalSupervisor: sanitizeTextInput(form.technicalSupervisor),
       licenseStatus: form.licenseStatus,
-      county: form.county,
-      city: form.city,
-      address: form.address,
-      phone: form.phone,
-      workingHours: form.workingHours,
+      county: sanitizeTextInput(form.county),
+      city: sanitizeTextInput(form.city),
+      address: sanitizeTextInput(form.address),
+      phone: form.phone.trim(),
+      workingHours: sanitizeTextInput(form.workingHours),
       services,
       status: 'pending',
     });
@@ -327,6 +337,13 @@ const FacilityRegistrationModal: React.FC<{
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
+            {errorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-lg text-[11px] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
               <span>
@@ -409,12 +426,13 @@ const FacilityRegistrationModal: React.FC<{
               <div>
                 <label className="block font-medium mb-1">تلفن تماس مرکز *</label>
                 <input
-                  type="text"
+                  type="tel"
                   required
+                  maxLength={11}
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="مثال: ۰۸۴۳۲۲۲۰۰۰۰"
-                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono"
+                  onChange={(e) => setForm({ ...form, phone: formatPhoneInput(e.target.value) })}
+                  placeholder="مثال: 08432220000 یا 09181234567"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono text-left dir-ltr"
                 />
               </div>
 

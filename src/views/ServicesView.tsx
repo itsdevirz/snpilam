@@ -21,7 +21,7 @@ interface ServicesViewProps {
 }
 
 export const ServicesView: React.FC<ServicesViewProps> = ({ initialServiceId }) => {
-  const { services } = useDataContext();
+  const { services, messages } = useDataContext();
   const [selectedCategory, setSelectedCategory] = useState<string>('همه');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeService, setActiveService] = useState<ServiceItem | null>(() => {
@@ -35,11 +35,15 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialServiceId }) 
   const [trackingCode, setTrackingCode] = useState('');
   const [trackingResult, setTrackingResult] = useState<{
     code: string;
-    serviceName: string;
+    department: string;
+    subject: string;
     applicant: string;
-    status: 'در حال بررسی کارشناسی' | 'تایید مدارک و در نوبت صدور' | 'نقص مدارک';
+    phone: string;
+    statusText: string;
+    statusType: 'new' | 'investigating' | 'resolved';
     date: string;
-    notes: string;
+    messageText: string;
+    adminReply?: string;
   } | null>(null);
   const [trackingError, setTrackingError] = useState('');
 
@@ -63,39 +67,54 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialServiceId }) 
 
   const handleTrackRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trackingCode.trim()) {
+    const query = trackingCode.trim().toLowerCase();
+    if (!query) {
       setTrackingError('لطفاً کد رهگیری درخواست را وارد نمایید.');
       setTrackingResult(null);
       return;
     }
 
     setTrackingError('');
-    // Realistic tracking simulation
-    if (trackingCode.includes('102') || trackingCode.length > 5) {
+    // Real search in database messages
+    const found = messages.find(
+      (m) =>
+        (m.trackingCode && m.trackingCode.toLowerCase() === query) ||
+        m.id.toLowerCase() === query ||
+        m.phone === query
+    );
+
+    if (found) {
+      const statusText =
+        found.status === 'resolved'
+          ? 'پاسخ داده شده و مختومه'
+          : found.status === 'investigating'
+          ? 'در حال بررسی کارشناسی در واحد مربوطه'
+          : 'ثبت جدید - در نوبت ارجاع';
+
       setTrackingResult({
-        code: trackingCode.trim(),
-        serviceName: 'تمدید ۵ ساله پروانه مطب شهر ایلام',
-        applicant: 'دکتر محمدرضا موسوی',
-        status: 'در حال بررسی کارشناسی',
-        date: '۱۴۰۵/۰۱/۱۱',
-        notes: 'مدارک مالیاتی ماده ۱۸۶ و کارنامه بازآموزی تایید شد. پرونده در دستور جلسه هفتگی کمیسیون نظارت قرار دارد.',
+        code: found.trackingCode || found.id,
+        department: found.department,
+        subject: found.subject,
+        applicant: found.fullName,
+        phone: found.phone,
+        statusText,
+        statusType: found.status,
+        date: found.date,
+        messageText: found.message,
+        adminReply: found.adminReply,
       });
     } else {
-      setTrackingResult({
-        code: trackingCode.trim(),
-        serviceName: 'صدور تاییدیه گود استندینگ',
-        applicant: 'متقاضی محترم نظام پزشکی ایلام',
-        status: 'تایید مدارک و در نوبت صدور',
-        date: '۱۴۰۵/۰۱/۱۴',
-        notes: 'استعلام دادسرای انتظامی وصول گردید. گواهی ممهور به مهر برجسته آماده تحویل در دبیرخانه است.',
-      });
+      setTrackingResult(null);
+      setTrackingError(
+        'هیچ پرونده، شکایت یا درخواستی با این کد رهگیری در دیتابیس یافت نشد. لطفاً کد رهگیری ارسالی (مانند IR-1405-87654321) را به دقت بررسی نمایید.'
+      );
     }
   };
 
   return (
     <div className="w-full space-y-8">
       {/* Header and Breadcrumb */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs">
+      <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-xl p-6 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-1.5 text-xs text-[#2463A6] mb-1 font-medium">
@@ -132,7 +151,7 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialServiceId }) 
               type="text"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
-              placeholder="مثال: ILM-1405-992 یا شماره درخواست..."
+              placeholder="مثال: IR-1405-87654321 یا شماره درخواست..."
               className="flex-1 text-xs bg-white border border-[#CBD5E1] rounded-lg px-3.5 py-2.5 text-[#202B38] focus:outline-none focus:border-[#2463A6]"
             />
             <button
@@ -148,24 +167,47 @@ export const ServicesView: React.FC<ServicesViewProps> = ({ initialServiceId }) 
           )}
 
           {trackingResult && (
-            <div className="mt-4 bg-white border border-[#2463A6]/40 rounded-lg p-4 text-xs space-y-2">
+            <div className="mt-4 bg-white border border-[#2463A6]/40 rounded-lg p-4 text-xs space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
                 <span className="font-bold text-[#17365D]">
-                  کد رهگیری: <span className="font-mono text-[#2463A6]">{trackingResult.code}</span>
+                  کد رهگیری: <span className="font-mono text-[#2463A6] bg-[#EFF6FC] px-2 py-0.5 rounded dir-ltr inline-block">{trackingResult.code}</span>
                 </span>
-                <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  وضعیت: {trackingResult.status}
+                <span
+                  className={`font-medium px-2.5 py-1 rounded text-[11px] ${
+                    trackingResult.statusType === 'resolved'
+                      ? 'text-emerald-800 bg-emerald-50 border border-emerald-200'
+                      : trackingResult.statusType === 'investigating'
+                      ? 'text-amber-800 bg-amber-50 border border-amber-200'
+                      : 'text-sky-800 bg-sky-50 border border-sky-200'
+                  }`}
+                >
+                  وضعیت پرونده: {trackingResult.statusText}
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
-                <p>عنوان تقاضا: <strong className="text-slate-900">{trackingResult.serviceName}</strong></p>
-                <p>متقاضی: <strong className="text-slate-900">{trackingResult.applicant}</strong></p>
-                <p>تاریخ ثبت: <span className="font-sans">{trackingResult.date}</span></p>
-                <p>مرجع رسیدگی: <strong>واحد امور پروانه‌های ایلام</strong></p>
+                <p>عنوان موضوع/شکواییه: <strong className="text-slate-900">{trackingResult.subject}</strong></p>
+                <p>متقاضی / فرستنده: <strong className="text-slate-900">{trackingResult.applicant}</strong> ({trackingResult.phone})</p>
+                <p>تاریخ ثبت در دیتابیس: <span className="font-sans">{trackingResult.date}</span></p>
+                <p>واحد ارجاع‌شونده: <strong>{trackingResult.department}</strong></p>
               </div>
-              <p className="text-slate-600 bg-slate-50 p-2.5 rounded border border-slate-200 leading-relaxed mt-1">
-                توضیحات کارشناس: {trackingResult.notes}
-              </p>
+
+              <div className="bg-slate-50 p-2.5 rounded border border-slate-200 space-y-1">
+                <span className="text-[11px] font-bold text-slate-700 block">شرح درخواست ارسالی:</span>
+                <p className="text-slate-600 leading-relaxed text-[11px]">{trackingResult.messageText}</p>
+              </div>
+
+              {trackingResult.adminReply ? (
+                <div className="bg-emerald-50 p-3 rounded border border-emerald-200 space-y-1">
+                  <span className="text-[11px] font-bold text-emerald-900 flex items-center gap-1">
+                    <span>پاسخ رسمی کارشناس/دبیرخانه:</span>
+                  </span>
+                  <p className="text-emerald-800 leading-relaxed font-medium">{trackingResult.adminReply}</p>
+                </div>
+              ) : (
+                <p className="text-amber-800 bg-amber-50 p-2 rounded border border-amber-200 text-[11px]">
+                  درخواست شما ثبت شده و در صف بررسی کارشناسی مسئولین واحد {trackingResult.department} قرار دارد.
+                </p>
+              )}
             </div>
           )}
         </div>

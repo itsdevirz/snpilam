@@ -4,6 +4,8 @@ import { Search, User, Bell, FileText, Award, Building2, GraduationCap, X, Arrow
 import { useDataContext } from '../context/DataContext';
 import { NavigationTab, Physician, Announcement, NewsItem, ServiceItem } from '../types';
 
+import { sanitizeSearchQuery } from '../utils/security';
+
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
@@ -45,7 +47,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   if (!isOpen) return null;
 
-  const trimmed = query.trim().toLowerCase();
+  const cleanQuery = sanitizeSearchQuery(query);
+  const trimmed = cleanQuery.toLowerCase();
 
   const filteredPhysicians = physicians.filter(
     (p) => !trimmed || p.name.toLowerCase().includes(trimmed) || p.specialty.toLowerCase().includes(trimmed) || p.medicalRegNo.includes(trimmed)

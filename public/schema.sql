@@ -166,6 +166,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `type` VARCHAR(64) DEFAULT 'inquiry',
   `status` VARCHAR(64) DEFAULT 'new',
   `adminReply` LONGTEXT,
+  `trackingCode` VARCHAR(64) DEFAULT '',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

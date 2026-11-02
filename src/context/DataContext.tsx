@@ -11,6 +11,7 @@ import {
   ContactMessage,
   ActivityLog,
 } from '../types';
+import { sanitizeObject, sanitizeTextInput } from '../utils/security';
 
 import { ANNOUNCEMENTS as defaultAnnouncements } from '../data/announcementsData';
 import { NEWS_ITEMS as defaultNews } from '../data/newsData';
@@ -31,6 +32,34 @@ async function sha256Hex(str: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Dynamic Shamsi/Jalali year calculation helper
+export function getCurrentShamsiYear(): number {
+  try {
+    const formatted = new Intl.DateTimeFormat('fa-IR-u-nu-latn', { year: 'numeric' }).format(new Date());
+    const yearNum = parseInt(formatted, 10);
+    if (!isNaN(yearNum) && yearNum > 1300 && yearNum < 1600) {
+      return yearNum;
+    }
+  } catch (e) {}
+
+  const now = new Date();
+  const gYear = now.getFullYear();
+  const gMonth = now.getMonth() + 1;
+  const gDay = now.getDate();
+  if (gMonth > 3 || (gMonth === 3 && gDay >= 21)) {
+    return gYear - 621;
+  } else {
+    return gYear - 622;
+  }
+}
+
+// Generate unique tracking code in format IR-[SHAMSI_YEAR]-[8_DIGITS]
+export function generateTrackingCode(): string {
+  const shamsiYear = getCurrentShamsiYear();
+  const random8Digits = Math.floor(10000000 + Math.random() * 90000000);
+  return `IR-${shamsiYear}-${random8Digits}`;
 }
 
 // Default "Aa@123456" SHA-256 hash
@@ -99,7 +128,7 @@ interface DataContextType {
   deleteService: (id: string) => void;
 
   // Messages
-  addMessage: (msg: Omit<ContactMessage, 'id' | 'date' | 'status'>) => void;
+  addMessage: (msg: Omit<ContactMessage, 'id' | 'date' | 'status'> & { trackingCode?: string }) => string;
   updateMessageStatus: (id: string, status: ContactMessage['status'], reply?: string) => void;
   deleteMessage: (id: string) => void;
 
@@ -145,12 +174,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [adminPasswordHash, setAdminPasswordHash] = useState<string>(DEFAULT_ADMIN_HASH);
   const [sitePhone, setSitePhone] = useState<string>('۰۸۴-۳۲۲۲۴۵۶۰');
 
-  // MySQL REST API calls (Direct server persistence)
+  // MySQL REST API calls (Direct server persistence with sanitized payloads)
   const apiSaveItem = (table: string, item: any) => {
+    const cleanItem = sanitizeObject(item);
     fetch('/api/data.php?action=save_item', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ table, item }),
+      body: JSON.stringify({ table, item: cleanItem }),
     }).catch(() => {});
   };
 
@@ -530,18 +560,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Messages
-  const addMessage = (data: Omit<ContactMessage, 'id' | 'date' | 'status'>) => {
+  const addMessage = (data: Omit<ContactMessage, 'id' | 'date' | 'status'> & { trackingCode?: string }) => {
     const now = new Date();
     const date = now.toLocaleDateString('fa-IR');
     const id = `msg-${Date.now()}`;
+    const trackingCode = data.trackingCode || generateTrackingCode();
     const newItem: ContactMessage = {
       id,
       ...data,
+      trackingCode,
       date,
       status: 'new',
     };
     setMessages((prev) => [newItem, ...prev]);
     apiSaveItem('messages', newItem);
+    return trackingCode;
   };
 
   const updateMessageStatus = (id: string, status: ContactMessage['status'], reply?: string) => {

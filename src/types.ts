@@ -28,6 +28,7 @@ export interface ContactMessage {
   type: 'inquiry' | 'suggestion' | 'complaint';
   status: 'new' | 'investigating' | 'resolved';
   adminReply?: string;
+  trackingCode?: string;
 }
 
 export interface ActivityLog {

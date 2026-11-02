@@ -2,6 +2,7 @@
 /**
  * Ilam Medical Council Portal - Fast MySQL REST API for cPanel
  * Performs CRUD & approval status operations for all entities.
+ * Fully sanitized against MySQL Injection & XSS.
  */
 
 require_once __DIR__ . '/config.php';
@@ -16,7 +17,7 @@ try {
     exit();
 }
 
-// Auto-migration helper: ensure 'status' column exists in physicians and facilities
+// Auto-migration helper: ensure required columns exist
 try {
     $pdo->exec("ALTER TABLE `physicians` ADD COLUMN `status` VARCHAR(64) DEFAULT 'approved'");
 } catch (Exception $e) {}
@@ -25,9 +26,16 @@ try {
     $pdo->exec("ALTER TABLE `facilities` ADD COLUMN `status` VARCHAR(64) DEFAULT 'approved'");
 } catch (Exception $e) {}
 
-$action = isset($_GET['action']) ? $_GET['action'] : (isset($_POST['action']) ? $_POST['action'] : '');
+try {
+    $pdo->exec("ALTER TABLE `messages` ADD COLUMN `trackingCode` VARCHAR(64) DEFAULT ''");
+} catch (Exception $e) {}
+
+$rawAction = isset($_GET['action']) ? $_GET['action'] : (isset($_POST['action']) ? $_POST['action'] : '');
+$action = preg_replace('/[^a-zA-Z0-9_]/', '', $rawAction);
+
 $rawInput = file_get_contents('php://input');
-$input = json_decode($rawInput, true);
+$decoded = json_decode($rawInput, true);
+$input = sanitizeInputServer($decoded);
 
 $allowedTables = [
     'physicians', 'announcements', 'news', 'facilities', 
@@ -39,20 +47,20 @@ $allowedTables = [
 if ($action === 'get_all') {
     try {
         $data = [
-            'physicians' => $pdo->query("SELECT * FROM physicians ORDER BY created_at DESC")->fetchAll(),
-            'announcements' => $pdo->query("SELECT * FROM announcements ORDER BY created_at DESC")->fetchAll(),
-            'news' => $pdo->query("SELECT * FROM news ORDER BY created_at DESC")->fetchAll(),
-            'facilities' => $pdo->query("SELECT * FROM facilities ORDER BY created_at DESC")->fetchAll(),
-            'classifieds' => $pdo->query("SELECT * FROM classifieds ORDER BY created_at DESC")->fetchAll(),
-            'education' => $pdo->query("SELECT * FROM education ORDER BY created_at DESC")->fetchAll(),
-            'regulations' => $pdo->query("SELECT * FROM regulations ORDER BY created_at DESC")->fetchAll(),
-            'services' => $pdo->query("SELECT * FROM services ORDER BY created_at DESC")->fetchAll(),
-            'messages' => $pdo->query("SELECT * FROM messages ORDER BY created_at DESC")->fetchAll(),
-            'logs' => $pdo->query("SELECT * FROM logs ORDER BY created_at DESC")->fetchAll(),
+            'physicians' => $pdo->query("SELECT * FROM `physicians` ORDER BY `created_at` DESC")->fetchAll(),
+            'announcements' => $pdo->query("SELECT * FROM `announcements` ORDER BY `created_at` DESC")->fetchAll(),
+            'news' => $pdo->query("SELECT * FROM `news` ORDER BY `created_at` DESC")->fetchAll(),
+            'facilities' => $pdo->query("SELECT * FROM `facilities` ORDER BY `created_at` DESC")->fetchAll(),
+            'classifieds' => $pdo->query("SELECT * FROM `classifieds` ORDER BY `created_at` DESC")->fetchAll(),
+            'education' => $pdo->query("SELECT * FROM `education` ORDER BY `created_at` DESC")->fetchAll(),
+            'regulations' => $pdo->query("SELECT * FROM `regulations` ORDER BY `created_at` DESC")->fetchAll(),
+            'services' => $pdo->query("SELECT * FROM `services` ORDER BY `created_at` DESC")->fetchAll(),
+            'messages' => $pdo->query("SELECT * FROM `messages` ORDER BY `created_at` DESC")->fetchAll(),
+            'logs' => $pdo->query("SELECT * FROM `logs` ORDER BY `created_at` DESC")->fetchAll(),
         ];
 
-        // Fetch settings
-        $settingsRaw = $pdo->query("SELECT setting_key, setting_value FROM admin_config")->fetchAll();
+        // Fetch settings safely
+        $settingsRaw = $pdo->query("SELECT `setting_key`, `setting_value` FROM `admin_config`")->fetchAll();
         $settings = [];
         foreach ($settingsRaw as $row) {
             $settings[$row['setting_key']] = $row['setting_value'];
@@ -102,9 +110,9 @@ if ($action === 'get_all') {
 if ($action === 'save_setting' && $input) {
     $key = isset($input['key']) ? trim($input['key']) : '';
     $value = isset($input['value']) ? trim($input['value']) : '';
-    if (!empty($key)) {
+    if (!empty($key) && preg_match('/^[a-zA-Z0-9_]+$/', $key)) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO admin_config (setting_key, setting_value) VALUES (:key, :val) ON DUPLICATE KEY UPDATE setting_value = :val");
+            $stmt = $pdo->prepare("INSERT INTO `admin_config` (`setting_key`, `setting_value`) VALUES (:key, :val) ON DUPLICATE KEY UPDATE `setting_value` = :val");
             $stmt->execute([':key' => $key, ':val' => $value]);
             echo json_encode(['success' => true, 'message' => 'تنظیمات ذخیره گردید.'], JSON_UNESCAPED_UNICODE);
         } catch (Exception $e) {
@@ -114,7 +122,7 @@ if ($action === 'save_setting' && $input) {
     exit();
 }
 
-// 2. SAVE OR UPDATE INDIVIDUAL ITEM
+// 2. SAVE OR UPDATE INDIVIDUAL ITEM (Strict Parameterized SQL)
 if ($action === 'save_item' && $input) {
     $table = isset($input['table']) ? trim($input['table']) : '';
     $item = isset($input['item']) ? $input['item'] : null;
@@ -125,6 +133,16 @@ if ($action === 'save_item' && $input) {
     }
 
     try {
+        // Fetch valid DB table columns to prevent column injection / unknown column errors
+        $existingCols = [];
+        try {
+            $stmtCols = $pdo->prepare("SHOW COLUMNS FROM `$table`");
+            $stmtCols->execute();
+            while ($colRow = $stmtCols->fetch(PDO::FETCH_ASSOC)) {
+                $existingCols[] = $colRow['Field'];
+            }
+        } catch (Exception $e) {}
+
         $cols = [];
         $placeholders = [];
         $updateParts = [];
@@ -132,6 +150,9 @@ if ($action === 'save_item' && $input) {
 
         foreach ($item as $key => $val) {
             if ($key === 'created_at') continue;
+            // Validate column name format
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $key)) continue;
+            if (!empty($existingCols) && !in_array($key, $existingCols)) continue;
 
             $cols[] = "`$key`";
             $placeholders[] = ":$key";
@@ -146,6 +167,11 @@ if ($action === 'save_item' && $input) {
             } else {
                 $params[":$key"] = $val;
             }
+        }
+
+        if (empty($cols)) {
+            echo json_encode(['success' => false, 'error' => 'فیلد معتبری برای ذخیره یافت نشد.'], JSON_UNESCAPED_UNICODE);
+            exit();
         }
 
         $sql = "INSERT INTO `$table` (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ") ";
@@ -165,7 +191,7 @@ if ($action === 'save_item' && $input) {
     exit();
 }
 
-// 3. APPROVE OR REJECT ITEM STATUS
+// 3. APPROVE OR REJECT ITEM STATUS (Parameterized SQL)
 if ($action === 'approve_item' && $input) {
     $table = isset($input['table']) ? trim($input['table']) : '';
     $id = isset($input['id']) ? trim($input['id']) : '';
@@ -190,7 +216,7 @@ if ($action === 'approve_item' && $input) {
     exit();
 }
 
-// 4. DELETE INDIVIDUAL ITEM
+// 4. DELETE INDIVIDUAL ITEM (Parameterized SQL)
 if ($action === 'delete_item' && $input) {
     $table = isset($input['table']) ? trim($input['table']) : '';
     $id = isset($input['id']) ? trim($input['id']) : '';

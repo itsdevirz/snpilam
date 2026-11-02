@@ -18,6 +18,8 @@ interface NewsViewProps {
   initialAnnouncementId?: string;
 }
 
+import { sanitizeSearchQuery } from '../utils/security';
+
 export const NewsView: React.FC<NewsViewProps> = ({
   initialNewsId,
   initialAnnouncementId,
@@ -40,19 +42,23 @@ export const NewsView: React.FC<NewsViewProps> = ({
 
   const filteredNews = newsItems.filter((item) => {
     if (activeTab === 'announcements') return false;
+    const cleanSearch = sanitizeSearchQuery(searchQuery);
+    if (!cleanSearch) return true;
     return (
-      item.title.includes(searchQuery) ||
-      item.summary.includes(searchQuery) ||
-      item.category.includes(searchQuery)
+      item.title.includes(cleanSearch) ||
+      item.summary.includes(cleanSearch) ||
+      item.category.includes(cleanSearch)
     );
   });
 
   const filteredAnnouncements = announcements.filter((item) => {
     if (activeTab === 'news') return false;
+    const cleanSearch = sanitizeSearchQuery(searchQuery);
+    if (!cleanSearch) return true;
     return (
-      item.title.includes(searchQuery) ||
-      item.summary.includes(searchQuery) ||
-      item.category.includes(searchQuery)
+      item.title.includes(cleanSearch) ||
+      item.summary.includes(cleanSearch) ||
+      item.category.includes(cleanSearch)
     );
   });
 

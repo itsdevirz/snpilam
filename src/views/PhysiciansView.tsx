@@ -19,6 +19,8 @@ import {
   Send,
   AlertCircle,
 } from 'lucide-react';
+import { isValidIranianPhone, formatPhoneInput } from '../utils/phoneUtils';
+import { sanitizeTextInput, sanitizeSearchQuery } from '../utils/security';
 
 interface PhysiciansViewProps {
   initialSearchQuery?: string;
@@ -65,15 +67,16 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
 
   // Filtering logic
   const filteredPhysicians = useMemo(() => {
+    const cleanSearch = sanitizeSearchQuery(searchTerm);
     return approvedPhysicians.filter((p) => {
       const matchSearch =
-        !searchTerm.trim() ||
-        p.name.includes(searchTerm) ||
-        p.medicalRegNo.includes(searchTerm) ||
-        p.specialty.includes(searchTerm) ||
-        p.clinicName.includes(searchTerm) ||
-        p.address.includes(searchTerm) ||
-        p.services.some((s) => s.includes(searchTerm));
+        !cleanSearch ||
+        p.name.includes(cleanSearch) ||
+        p.medicalRegNo.includes(cleanSearch) ||
+        p.specialty.includes(cleanSearch) ||
+        p.clinicName.includes(cleanSearch) ||
+        p.address.includes(cleanSearch) ||
+        p.services.some((s) => s.includes(cleanSearch));
 
       const matchSpecialty =
         !selectedSpecialtyGroup ||
@@ -476,23 +479,30 @@ const PhysicianRegistrationModal: React.FC<{
     servicesStr: 'معاینات پزشکی, مشاوره درمانی',
   });
 
+  const [errorMsg, setErrorMsg] = useState('');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const services = form.servicesStr.split(',').map((s) => s.trim()).filter(Boolean);
+    if (!isValidIranianPhone(form.phone)) {
+      setErrorMsg('شماره تلفن وارد شده معتبر نیست. شماره تلفن باید ۱۱ رقمی و با ۰ شروع شود (مثال: 08433340000 یا 09181234567).');
+      return;
+    }
+    setErrorMsg('');
+    const services = form.servicesStr.split(',').map((s) => sanitizeTextInput(s)).filter(Boolean);
     onSubmit({
-      name: form.name,
-      medicalRegNo: form.medicalRegNo,
+      name: sanitizeTextInput(form.name),
+      medicalRegNo: sanitizeTextInput(form.medicalRegNo),
       specialtyGroup: form.specialtyGroup,
-      specialty: form.specialty,
-      subSpecialty: form.subSpecialty,
-      county: form.county,
-      city: form.city,
-      clinicName: form.clinicName,
-      address: form.address,
-      phone: form.phone,
+      specialty: sanitizeTextInput(form.specialty),
+      subSpecialty: sanitizeTextInput(form.subSpecialty),
+      county: sanitizeTextInput(form.county),
+      city: sanitizeTextInput(form.city),
+      clinicName: sanitizeTextInput(form.clinicName),
+      address: sanitizeTextInput(form.address),
+      phone: form.phone.trim(),
       licenseStatus: form.licenseStatus,
-      consultationDays: form.consultationDays,
-      consultationHours: form.consultationHours,
+      consultationDays: sanitizeTextInput(form.consultationDays),
+      consultationHours: sanitizeTextInput(form.consultationHours),
       services,
       status: 'pending',
     });
@@ -527,6 +537,13 @@ const PhysicianRegistrationModal: React.FC<{
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
+            {errorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
             <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-lg text-[11px] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
               <span>
@@ -640,12 +657,13 @@ const PhysicianRegistrationModal: React.FC<{
               <div>
                 <label className="block font-medium mb-1">تلفن تماس مطب *</label>
                 <input
-                  type="text"
+                  type="tel"
                   required
+                  maxLength={11}
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="مثال: ۰۸۴۳۳۳۴۰۰۰۰"
-                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono"
+                  onChange={(e) => setForm({ ...form, phone: formatPhoneInput(e.target.value) })}
+                  placeholder="مثال: 08433340000 یا 09181234567"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono text-left dir-ltr"
                 />
               </div>
             </div>

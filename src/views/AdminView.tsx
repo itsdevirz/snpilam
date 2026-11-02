@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { useDataContext } from '../context/DataContext';
 import { COUNCIL_INFO } from '../data/councilData';
+import { sanitizeTextInput, sanitizeSearchQuery } from '../utils/security';
 import {
   ShieldAlert,
   Users,
@@ -1918,10 +1919,12 @@ const PhysicianFormModal: React.FC<{
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const services = form.servicesStr.split(',').map((s) => s.trim()).filter(Boolean);
+    const { servicesStr, ...restForm } = form;
     onSave({
       ...(initialItem ? { id: initialItem.id } : {}),
-      ...form,
+      ...restForm,
       services,
+      status: initialItem?.status || 'approved',
     });
   };
 
