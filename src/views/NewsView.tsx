@@ -19,6 +19,7 @@ interface NewsViewProps {
 }
 
 import { sanitizeSearchQuery } from '../utils/security';
+import { calculateReadingTime } from '../utils/readingTime';
 
 export const NewsView: React.FC<NewsViewProps> = ({
   initialNewsId,
@@ -204,39 +205,62 @@ export const NewsView: React.FC<NewsViewProps> = ({
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredNews.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setSelectedNews(item)}
-                className="bg-white border border-brand-border hover:border-[#1DCED8] rounded-2xl p-6 transition-all cursor-pointer group flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs text-brand-muted">
-                    <span className="font-semibold text-brand-dark">{item.category}</span>
-                    <span>·</span>
-                    <span className="tabular-nums">{item.date}</span>
-                    <span>·</span>
-                    <span>{item.readTime}</span>
+            {filteredNews.map((item) => {
+              const coverImg = item.imageUrl || (item.images && item.images[0]);
+              const itemReadTime = item.readTime || calculateReadingTime(item.content, item.summary);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedNews(item)}
+                  className="bg-white border border-brand-border hover:border-[#1DCED8] rounded-2xl overflow-hidden transition-all cursor-pointer group flex flex-col justify-between hover:shadow-md"
+                >
+                  <div>
+                    {coverImg && (
+                      <div className="h-44 overflow-hidden relative bg-slate-900">
+                        <img
+                          src={coverImg}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute top-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-medium px-2.5 py-0.5 rounded-full">
+                          {item.category}
+                        </span>
+                        {item.images && item.images.length > 1 && (
+                          <span className="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-xs text-white text-[10px] px-2 py-0.5 rounded">
+                            {item.images.length} تصویر
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="p-6 space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-brand-muted">
+                        {!coverImg && <span className="font-semibold text-brand-dark">{item.category} · </span>}
+                        <span className="tabular-nums">{item.date}</span>
+                        <span>·</span>
+                        <span>زمان مطالعه: {itemReadTime}</span>
+                      </div>
+
+                      <h4 className="text-base font-bold text-brand-dark group-hover:text-[#1DCED8] transition-colors leading-snug">
+                        {item.title}
+                      </h4>
+
+                      <p className="text-xs text-brand-muted leading-relaxed line-clamp-3">
+                        {item.summary}
+                      </p>
+                    </div>
                   </div>
 
-                  <h4 className="text-base font-bold text-brand-dark group-hover:text-[#1DCED8] transition-colors leading-snug">
-                    {item.title}
-                  </h4>
-
-                  <p className="text-xs text-brand-muted leading-relaxed line-clamp-3">
-                    {item.summary}
-                  </p>
+                  <div className="px-6 py-4 border-t border-brand-border bg-slate-50/50 flex items-center justify-between text-xs">
+                    <span className="text-[11px] text-brand-muted">منبع: {item.source}</span>
+                    <span className="font-bold text-[#1DCED8] flex items-center gap-1 group-hover:translate-x-[-2px] transition-transform">
+                      <span>ادامه مطلب</span>
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
                 </div>
-
-                <div className="pt-4 border-t border-brand-border mt-5 flex items-center justify-between text-xs">
-                  <span className="text-[11px] text-brand-muted">منبع: {item.source}</span>
-                  <span className="font-bold text-[#1DCED8] flex items-center gap-1">
-                    <span>ادامه مطلب</span>
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -244,7 +268,7 @@ export const NewsView: React.FC<NewsViewProps> = ({
       {/* Announcement Detail Modal */}
       {selectedAnnouncement && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-brand-border">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-brand-border max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between pb-4 border-b border-brand-border">
               <div>
                 <span className="text-xs font-semibold text-brand-muted">
@@ -272,6 +296,17 @@ export const NewsView: React.FC<NewsViewProps> = ({
               </button>
             </div>
 
+            {/* Announcement Image preview if exists */}
+            {(selectedAnnouncement.imageUrl || (selectedAnnouncement.images && selectedAnnouncement.images.length > 0)) && (
+              <div className="rounded-xl overflow-hidden max-h-72 bg-slate-100 border border-slate-200">
+                <img
+                  src={selectedAnnouncement.imageUrl || selectedAnnouncement.images?.[0]}
+                  alt={selectedAnnouncement.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
             <div className="text-xs sm:text-sm text-brand-dark leading-relaxed space-y-3 bg-[#F7F8F7] p-5 rounded-2xl border border-brand-border whitespace-pre-line">
               {selectedAnnouncement.content}
             </div>
@@ -292,18 +327,20 @@ export const NewsView: React.FC<NewsViewProps> = ({
       {/* News Detail Modal */}
       {selectedNews && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-brand-border">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-5 border border-brand-border max-h-[90vh] overflow-y-auto">
             <div className="flex items-start justify-between pb-4 border-b border-brand-border">
               <div>
-                <span className="text-xs font-semibold text-brand-muted">
+                <span className="text-xs font-semibold text-[#2463A6] bg-blue-50 px-2.5 py-1 rounded-md">
                   {selectedNews.category}
                 </span>
-                <h3 className="text-lg font-bold text-brand-dark mt-1 leading-snug">
+                <h3 className="text-lg sm:text-xl font-bold text-brand-dark mt-2 leading-snug">
                   {selectedNews.title}
                 </h3>
-                <div className="flex items-center gap-3 text-xs text-brand-muted mt-2 font-sans tabular-nums">
+                <div className="flex items-center gap-3 text-xs text-brand-muted mt-2 font-sans tabular-nums flex-wrap">
                   <span>تاریخ: {selectedNews.date}</span>
-                  <span>زمان مطالعه: {selectedNews.readTime}</span>
+                  <span>·</span>
+                  <span>زمان مطالعه: {selectedNews.readTime || calculateReadingTime(selectedNews.content, selectedNews.summary)}</span>
+                  <span>·</span>
                   <span>منبع: {selectedNews.source}</span>
                 </div>
               </div>
@@ -316,6 +353,33 @@ export const NewsView: React.FC<NewsViewProps> = ({
               </button>
             </div>
 
+            {/* Main Cover Image */}
+            {(selectedNews.imageUrl || (selectedNews.images && selectedNews.images.length > 0)) && (
+              <div className="space-y-3">
+                <div className="rounded-xl overflow-hidden max-h-80 bg-slate-900 border border-slate-200">
+                  <img
+                    src={selectedNews.imageUrl || selectedNews.images?.[0]}
+                    alt={selectedNews.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                {/* Multiple Images Gallery */}
+                {selectedNews.images && selectedNews.images.length > 1 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[11px] font-bold text-slate-700 block">گالری تصاویر پیوست:</span>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {selectedNews.images.map((img, idx) => (
+                        <div key={idx} className="aspect-video rounded-lg overflow-hidden border border-slate-200 bg-slate-100">
+                          <img src={img} alt={`تصویر ${idx + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="text-xs sm:text-sm text-brand-dark leading-relaxed space-y-3 bg-[#F7F8F7] p-5 rounded-2xl border border-brand-border whitespace-pre-line">
               {selectedNews.content}
             </div>
@@ -324,7 +388,7 @@ export const NewsView: React.FC<NewsViewProps> = ({
               <span className="text-brand-muted">روابط عمومی نظام پزشکی ایلام</span>
               <button
                 onClick={() => setSelectedNews(null)}
-                className="bg-[#FF9D50] hover:bg-[#e0843a] text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-xs"
+                className="bg-[#2463A6] hover:bg-[#17365D] text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-xs"
               >
                 بستن پنجره
               </button>

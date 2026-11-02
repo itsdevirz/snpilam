@@ -12,6 +12,7 @@ import {
   ActivityLog,
 } from '../types';
 import { sanitizeObject, sanitizeTextInput } from '../utils/security';
+import { calculateReadingTime } from '../utils/readingTime';
 
 import { ANNOUNCEMENTS as defaultAnnouncements } from '../data/announcementsData';
 import { NEWS_ITEMS as defaultNews } from '../data/newsData';
@@ -427,7 +428,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Announcement CRUD
   const addAnnouncement = (data: Omit<Announcement, 'id'>) => {
     const id = `ann-${Date.now()}`;
-    const newItem = { id, ...data };
+    const date = data.date || new Date().toLocaleDateString('fa-IR');
+    const newItem = { id, ...data, date };
     setAnnouncements((prev) => [newItem, ...prev]);
     apiSaveItem('announcements', newItem);
     addLog('ثبت اطلاعیه جدید', data.title, 'create');
@@ -449,15 +451,19 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // News CRUD
   const addNews = (data: Omit<NewsItem, 'id'>) => {
     const id = `news-${Date.now()}`;
-    const newItem = { id, ...data };
+    const date = data.date || new Date().toLocaleDateString('fa-IR');
+    const readTime = data.readTime || calculateReadingTime(data.content, data.summary);
+    const newItem: NewsItem = { id, ...data, date, readTime };
     setNewsItems((prev) => [newItem, ...prev]);
     apiSaveItem('news', newItem);
     addLog('انتشار خبر جدید', data.title, 'create');
   };
 
   const updateNews = (news: NewsItem) => {
-    setNewsItems((prev) => prev.map((n) => (n.id === news.id ? news : n)));
-    apiSaveItem('news', news);
+    const readTime = news.readTime || calculateReadingTime(news.content, news.summary);
+    const updated = { ...news, readTime };
+    setNewsItems((prev) => prev.map((n) => (n.id === news.id ? updated : n)));
+    apiSaveItem('news', updated);
     addLog('ویرایش خبر', news.title, 'update');
   };
 

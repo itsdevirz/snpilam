@@ -13,6 +13,8 @@ import {
 import { useDataContext } from '../context/DataContext';
 import { COUNCIL_INFO } from '../data/councilData';
 import { sanitizeTextInput, sanitizeSearchQuery } from '../utils/security';
+import { calculateReadingTime } from '../utils/readingTime';
+import { ImageUploader } from '../components/ImageUploader';
 import {
   ShieldAlert,
   Users,
@@ -51,6 +53,8 @@ import {
   Server,
   RefreshCw,
   FileCode,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 type AdminTab =
@@ -354,7 +358,7 @@ export const AdminView: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-[#55E07E] animate-pulse"></span>
               <span>مدیریت یکپارچه پورتال نظام پزشکی استان ایلام</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold">داشبورد مدیریت ارشد و کنترل محتوا</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">پنل مدیریت</h2>
           </div>
         </div>
 
@@ -2110,6 +2114,8 @@ const AnnouncementFormModal: React.FC<{
     expirationDate: initialItem?.expirationDate || '',
     summary: initialItem?.summary || '',
     content: initialItem?.content || '',
+    imageUrl: initialItem?.imageUrl || '',
+    images: initialItem?.images || (initialItem?.imageUrl ? [initialItem.imageUrl] : []),
     date: initialItem?.date || new Date().toLocaleDateString('fa-IR'),
   });
 
@@ -2123,7 +2129,7 @@ const AnnouncementFormModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <h3 className="font-bold text-sm text-[#17365D]">
             {initialItem ? 'ویرایش اطلاعیه رسمی' : 'ثبت اطلاعیه رسمی جدید'}
@@ -2133,7 +2139,7 @@ const AnnouncementFormModal: React.FC<{
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-medium mb-1">عنوان اطلاعیه *</label>
             <input
@@ -2145,6 +2151,19 @@ const AnnouncementFormModal: React.FC<{
               className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
             />
           </div>
+
+          {/* Image Uploader Component */}
+          <ImageUploader
+            images={form.images}
+            imageUrl={form.imageUrl}
+            onChange={(imgs, primary) =>
+              setForm({
+                ...form,
+                images: imgs,
+                imageUrl: primary || (imgs.length > 0 ? imgs[0] : ''),
+              })
+            }
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -2259,23 +2278,29 @@ const NewsFormModal: React.FC<{
     category: initialItem?.category || 'اخبار سازمانی',
     summary: initialItem?.summary || '',
     content: initialItem?.content || '',
-    readTime: initialItem?.readTime || '۳ دقیقه',
+    readTime: initialItem?.readTime || '',
     source: initialItem?.source || 'روابط عمومی نظام پزشکی ایلام',
-    isFeatured: initialItem?.isFeatured || false,
+    isFeatured: initialItem?.isFeatured !== undefined ? initialItem.isFeatured : true,
+    imageUrl: initialItem?.imageUrl || '',
+    images: initialItem?.images || (initialItem?.imageUrl ? [initialItem.imageUrl] : []),
     date: initialItem?.date || new Date().toLocaleDateString('fa-IR'),
   });
+
+  const computedReadTime = calculateReadingTime(form.content, form.summary);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
       ...(initialItem ? { id: initialItem.id } : {}),
       ...form,
+      date: form.date.trim() || new Date().toLocaleDateString('fa-IR'),
+      readTime: form.readTime.trim() || computedReadTime,
     });
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200">
           <h3 className="font-bold text-sm text-[#17365D]">
             {initialItem ? 'ویرایش خبر' : 'انتشار خبر جدید'}
@@ -2285,7 +2310,7 @@ const NewsFormModal: React.FC<{
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block font-medium mb-1">تیتر خبر *</label>
             <input
@@ -2298,7 +2323,20 @@ const NewsFormModal: React.FC<{
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Image Uploader Component (Optional Photo) */}
+          <ImageUploader
+            images={form.images}
+            imageUrl={form.imageUrl}
+            onChange={(imgs, primary) =>
+              setForm({
+                ...form,
+                images: imgs,
+                imageUrl: primary || (imgs.length > 0 ? imgs[0] : ''),
+              })
+            }
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block font-medium mb-1">دسته‌بندی</label>
               <input
@@ -2307,6 +2345,18 @@ const NewsFormModal: React.FC<{
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 placeholder="مثال: جلسات و مصوبات"
                 className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+              />
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">تاریخ انتشار روی سایت *</label>
+              <input
+                type="text"
+                required
+                value={form.date}
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                placeholder="مثال: ۱۴۰۳/۱۲/۱۵"
+                className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-sans"
               />
             </div>
 
@@ -2321,16 +2371,16 @@ const NewsFormModal: React.FC<{
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1 bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/80">
             <input
               type="checkbox"
               id="isFeatured"
               checked={form.isFeatured}
               onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
-              className="rounded text-[#2463A6]"
+              className="rounded text-[#2463A6] w-4 h-4 cursor-pointer"
             />
-            <label htmlFor="isFeatured" className="font-medium text-slate-800 cursor-pointer">
-              تعیین به عنوان خبر ویژه در بالای صفحه اصلی
+            <label htmlFor="isFeatured" className="font-bold text-slate-800 cursor-pointer text-xs">
+              🌟 تعیین به عنوان خبر اصلی (بلاک بزرگ در صفحه اصلی)
             </label>
           </div>
 
@@ -2341,6 +2391,7 @@ const NewsFormModal: React.FC<{
               required
               value={form.summary}
               onChange={(e) => setForm({ ...form, summary: e.target.value })}
+              placeholder="یک لید یا خلاصه ۲ خطی..."
               className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
             />
           </div>
@@ -2352,8 +2403,16 @@ const NewsFormModal: React.FC<{
               required
               value={form.content}
               onChange={(e) => setForm({ ...form, content: e.target.value })}
+              placeholder="شرح و متن کامل خبر..."
               className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
             />
+          </div>
+
+          <div className="bg-[#EFF6FC] border border-[#2463A6]/20 p-3 rounded-lg flex items-center justify-between text-xs text-[#17365D]">
+            <span>زمان مطالعه محاسبه‌شده بر اساس حجم متن:</span>
+            <span className="font-bold text-[#2463A6] font-sans bg-white px-2.5 py-1 rounded border border-[#2463A6]/30">
+              {form.readTime ? form.readTime : `${computedReadTime} (خودکار)`}
+            </span>
           </div>
 
           <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
@@ -2361,7 +2420,7 @@ const NewsFormModal: React.FC<{
               type="submit"
               className="bg-[#2463A6] hover:bg-[#17365D] text-white font-bold px-4 py-2 rounded-lg"
             >
-              ذخیره خبر
+              ذخیره و انتشار خبر
             </button>
             <button type="button" onClick={onClose} className="text-slate-500 hover:text-slate-800 px-3 py-2">
               انصراف

@@ -33,8 +33,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
           {/* Col 1: Institutional Identity (5 cols) */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#FFF9D8] flex items-center justify-center text-[#20242A] shrink-0">
-                <CouncilEmblem size={28} />
+              <div className="w-10 h-10 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0 shadow-2xs">
+                <CouncilEmblem size={36} />
               </div>
               <div>
                 <h4 className="font-bold text-white text-sm tracking-tight">
@@ -162,13 +162,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
               className="hover:text-white transition-colors"
             >
               شکواییه‌ها و پیگیری
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              onClick={() => navigate('admin')}
-              className="hover:text-[#FF9D50] transition-colors font-medium"
-            >
-              ورود مدیریت
             </button>
           </div>
         </div>

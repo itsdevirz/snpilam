@@ -51,6 +51,8 @@ export interface Announcement {
   content: string;
   expirationDate?: string;
   docNumber?: string;
+  imageUrl?: string;
+  images?: string[];
 }
 
 export interface NewsItem {
@@ -62,6 +64,7 @@ export interface NewsItem {
   content: string;
   readTime: string;
   imageUrl?: string;
+  images?: string[];
   isFeatured?: boolean;
   source: string;
 }
