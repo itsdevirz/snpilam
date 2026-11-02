@@ -2,37 +2,53 @@
 
 @theme {
   --font-sans: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --color-brand-navy: #17365D;
-  --color-brand-blue: #2463A6;
-  --color-brand-lightblue: #EFF6FC;
-  --color-brand-bg: #F5F7FA;
-  --color-brand-text: #202B38;
-  --color-brand-muted: #667085;
-  --color-brand-border: #E2E8F0;
-  --color-brand-green: #24845B;
-  --color-brand-orange: #C77920;
-  --color-brand-red: #C83E4D;
+  
+  /* Official Palette */
+  --color-brand-orange: #FF9D50;
+  --color-brand-cream: #FFF9D8;
+  --color-brand-cyan: #1DCED8;
+  --color-brand-green: #55E07E;
+  
+  /* Supporting Palette */
+  --color-brand-bg: #FFFFFF;
+  --color-brand-surface: #F7F8F7;
+  --color-brand-dark: #20242A;
+  --color-brand-muted: #777F87;
+  --color-brand-border: #E9ECEF;
+  --color-brand-dark-border: #2E353D;
+  --color-brand-red: #E5484D;
 }
 
 html {
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  background-color: #FFFFFF;
+  color: #20242A;
 }
 
-/* Custom subtle scrollbar */
+/* Balance heading wraps to prevent orphan words */
+h1, h2, h3, h4, h5, h6 {
+  text-wrap: balance;
+}
+
+/* Tabular numerals for alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom refined scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #F7F8F7;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #94A3B8;
 }
-

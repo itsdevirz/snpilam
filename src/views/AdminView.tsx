@@ -287,47 +287,47 @@ export const AdminView: React.FC = () => {
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 space-y-6">
+        <div className="bg-white border border-brand-border rounded-2xl shadow-xl max-w-md w-full p-6 sm:p-8 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 bg-[#17365D] text-white rounded-full flex items-center justify-center mx-auto shadow-md">
-              <Lock className="w-7 h-7" />
+            <div className="w-14 h-14 bg-brand-dark text-white rounded-2xl flex items-center justify-center mx-auto shadow-xs">
+              <Lock className="w-7 h-7 text-[#FF9D50]" />
             </div>
-            <h2 className="text-xl font-bold text-[#17365D]">ورود به پنل مدیریت ارشد</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="text-2xl font-bold text-brand-dark">ورود به پنل مدیریت ارشد</h2>
+            <p className="text-xs text-brand-muted">
               پورتال اطلاع‌رسانی و خدمات دیجیتال سازمان نظام پزشکی استان ایلام
             </p>
           </div>
 
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
             {loginError && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg flex items-center gap-2">
+              <div className="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{loginError}</span>
               </div>
             )}
 
             <div>
-              <label className="block font-medium text-slate-700 mb-1">رمز عبور مدیریتی</label>
+              <label className="block font-semibold text-brand-dark mb-1">رمز عبور مدیریتی</label>
               <input
                 type="password"
                 required
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="رمز عبور مدیریت..."
-                className="w-full bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg px-3.5 py-2.5 text-slate-900 focus:bg-white focus:outline-none focus:border-[#2463A6]"
+                className="w-full bg-[#F7F8F7] border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:bg-white focus:outline-none focus:border-[#FF9D50]"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#17365D] hover:bg-[#2463A6] text-white font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs"
+              className="w-full bg-[#FF9D50] hover:bg-[#e0843a] text-white font-bold py-3 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 text-xs"
             >
               <Key className="w-4 h-4" />
               <span>ورود به سامانه مدیریت</span>
             </button>
           </form>
 
-          <div className="border-t border-slate-100 pt-3 text-center text-[11px] text-slate-400">
+          <div className="border-t border-brand-border pt-4 text-center text-[11px] text-brand-muted">
             دسترسی منحصراً ویژه اعضای هیئت مدیره و مدیران فناوری اطلاعات
           </div>
         </div>
@@ -344,31 +344,31 @@ export const AdminView: React.FC = () => {
   return (
     <div className="w-full space-y-6">
       {/* Top Banner Admin Header */}
-      <div className="bg-[#17365D] text-white rounded-2xl p-5 sm:p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-sky-300 shrink-0">
+      <div className="bg-brand-dark text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-[#FF9D50] shrink-0">
             <ShieldAlert className="w-6 h-6" />
           </div>
-          <div>
-            <div className="flex items-center gap-2 text-xs text-sky-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2 text-xs text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-[#55E07E] animate-pulse"></span>
               <span>مدیریت یکپارچه پورتال نظام پزشکی استان ایلام</span>
             </div>
-            <h2 className="text-lg sm:text-xl font-bold mt-0.5">داشبورد مدیریت ارشد و کنترل محتوا</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">داشبورد مدیریت ارشد و کنترل محتوا</h2>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={() => setActiveAdminTab('settings')}
-            className="text-xs bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+            className="text-xs bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 font-medium"
           >
             <Settings className="w-4 h-4" />
             <span>تنظیمات</span>
           </button>
           <button
             onClick={logoutAdmin}
-            className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+            className="text-xs bg-red-600/80 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 font-medium"
           >
             <LogOut className="w-4 h-4" />
             <span>خروج از پنل</span>
@@ -377,37 +377,37 @@ export const AdminView: React.FC = () => {
       </div>
 
       {/* Admin Navigation Tabs */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-2 shadow-xs overflow-x-auto flex items-center gap-1.5 text-xs font-medium">
+      <div className="bg-white border border-brand-border rounded-2xl p-2 shadow-xs overflow-x-auto flex items-center gap-1.5 text-xs font-medium">
         <button
           onClick={() => setActiveAdminTab('overview')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'overview' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'overview' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Activity className="w-4 h-4" />
+          <Activity className="w-4 h-4 text-[#FF9D50]" />
           <span>آمار و خلاصه</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('physicians')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'physicians' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'physicians' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Users className="w-4 h-4" />
+          <Users className="w-4 h-4 text-[#1DCED8]" />
           <span>پزشکان ({physicians.length})</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('announcements')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'announcements' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'announcements' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Bell className="w-4 h-4" />
+          <Bell className="w-4 h-4 text-[#FF9D50]" />
           <span>اطلاعیه‌ها و اخبار</span>
           {urgentCount > 0 && (
-            <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+            <span className="bg-[#FF9D50] text-white text-[10px] px-2 py-0.5 rounded-full font-bold tabular-nums">
               {urgentCount}
             </span>
           )}
@@ -415,14 +415,14 @@ export const AdminView: React.FC = () => {
 
         <button
           onClick={() => setActiveAdminTab('messages')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'messages' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'messages' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Inbox className="w-4 h-4" />
+          <Inbox className="w-4 h-4 text-[#1DCED8]" />
           <span>پیام‌ها و شکایات ({messages.length})</span>
           {unreadMsgCount > 0 && (
-            <span className="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+            <span className="bg-[#FF9D50] text-white text-[10px] px-2 py-0.5 rounded-full font-bold tabular-nums">
               {unreadMsgCount} جدید
             </span>
           )}
@@ -430,51 +430,51 @@ export const AdminView: React.FC = () => {
 
         <button
           onClick={() => setActiveAdminTab('classifieds')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'classifieds' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'classifieds' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Briefcase className="w-4 h-4" />
+          <Briefcase className="w-4 h-4 text-[#FF9D50]" />
           <span>نیازمندی‌ها ({classifieds.length})</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('education')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'education' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'education' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <GraduationCap className="w-4 h-4" />
+          <GraduationCap className="w-4 h-4 text-[#1DCED8]" />
           <span>بازآموزی CME ({educationEvents.length})</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('facilities')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'facilities' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'facilities' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Building2 className="w-4 h-4" />
+          <Building2 className="w-4 h-4 text-[#FF9D50]" />
           <span>مراکز درمانی ({facilities.length})</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('regulations')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'regulations' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'regulations' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <FileText className="w-4 h-4 text-brand-muted" />
           <span>بخشنامه‌ها ({regulations.length})</span>
         </button>
 
         <button
           onClick={() => setActiveAdminTab('services')}
-          className={`px-3.5 py-2 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeAdminTab === 'services' ? 'bg-[#17365D] text-white font-bold' : 'text-slate-700 hover:bg-slate-100'
+          className={`px-4 py-2.5 rounded-xl transition-all whitespace-nowrap flex items-center gap-1.5 ${
+            activeAdminTab === 'services' ? 'bg-brand-dark text-white font-bold' : 'text-brand-dark hover:bg-[#F7F8F7]'
           }`}
         >
-          <Award className="w-4 h-4" />
+          <Award className="w-4 h-4 text-[#55E07E]" />
           <span>خدمات اعضا ({services.length})</span>
         </button>
       </div>

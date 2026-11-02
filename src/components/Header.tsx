@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { CouncilEmblem } from './CouncilEmblem';
 import { NavigationTab } from '../types';
-import { COUNCIL_INFO } from '../data/councilData';
 import {
   Search,
   Phone,
@@ -11,16 +11,16 @@ import {
   Building2,
   FileText,
   UserCheck,
-  GraduationCap,
   Scale,
   Briefcase,
   ShieldCheck,
-  ShieldAlert,
   Info,
   Home,
   Award,
   Bell,
+  GraduationCap,
 } from 'lucide-react';
+import { sanitizeSearchQuery } from '../utils/security';
 
 interface HeaderProps {
   currentTab: NavigationTab;
@@ -29,9 +29,12 @@ interface HeaderProps {
   onOpenCommandPalette?: () => void;
 }
 
-import { sanitizeSearchQuery } from '../utils/security';
-
-export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearchGlobal, onOpenCommandPalette }) => {
+export const Header: React.FC<HeaderProps> = ({
+  currentTab,
+  onSelectTab,
+  onSearchGlobal,
+  onOpenCommandPalette,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -52,60 +55,218 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
   };
 
   return (
-    <header className="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-40">
-      {/* 2. Main Identity & Search Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
-        {/* Organization Branding */}
-        <div
+    <header className="w-full bg-white border-b border-[#E9ECEF] sticky top-0 z-40 transition-all">
+      {/* Swiss Editorial Top Bar (3-Zone Contract) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-8">
+        
+        {/* Zone 1: Single Element Brand Wordmark */}
+        <a
           onClick={() => navigateTo('home')}
-          className="flex items-center gap-3.5 cursor-pointer select-none group"
+          className="flex items-center gap-3 cursor-pointer select-none shrink-0 group"
         >
-          <CouncilEmblem size={52} className="shrink-0 group-hover:scale-105 transition-transform" />
+          <div className="w-10 h-10 rounded-xl bg-[#FFF9D8] border border-[#FF9D50]/30 flex items-center justify-center text-[#20242A] shrink-0 group-hover:bg-[#FF9D50] group-hover:text-white transition-all shadow-2xs">
+            <CouncilEmblem size={28} className="shrink-0" />
+          </div>
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-[#2463A6] tracking-wide">
-              سازمان نظام پزشکی جمهوری اسلامی ایران
+            <span className="text-[10px] font-medium text-[#777F87] tracking-tight">
+              پورتال رسمی خدمات دیجیتال
             </span>
-            <h1 className="text-lg sm:text-xl font-bold text-[#17365D] tracking-tight">
+            <span className="text-base sm:text-lg font-black text-[#20242A] tracking-tight whitespace-nowrap">
               سازمان نظام پزشکی استان ایلام
-            </h1>
-            <span className="text-[11px] text-[#667085] hidden sm:block">
-              سامانه اطلاع‌رسانی، امور صنفی و خدمات دیجیتال جامعه پزشکی
             </span>
           </div>
-        </div>
+        </a>
 
-        {/* Global Search Input & Quick Command Palette */}
-        <div className="hidden lg:flex items-center gap-2.5">
+        {/* Zone 2: Clean 4-5 Single-Line Navigation Links */}
+        <nav className="hidden lg:flex items-center gap-1 text-xs font-medium text-[#20242A]">
+          <button
+            onClick={() => navigateTo('home')}
+            className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              currentTab === 'home'
+                ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+            }`}
+          >
+            صفحه اصلی
+          </button>
+
+          <button
+            onClick={() => navigateTo('physicians')}
+            className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              currentTab === 'physicians'
+                ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+            }`}
+          >
+            بانک پزشکان
+          </button>
+
+          <button
+            onClick={() => navigateTo('services')}
+            className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              currentTab === 'services'
+                ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+            }`}
+          >
+            خدمات اعضا
+          </button>
+
+          <button
+            onClick={() => navigateTo('facilities')}
+            className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              currentTab === 'facilities'
+                ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+            }`}
+          >
+            مراکز درمانی
+          </button>
+
+          <button
+            onClick={() => navigateTo('news')}
+            className={`px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              currentTab === 'news'
+                ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+            }`}
+          >
+            اخبار و ابلاغیه‌ها
+          </button>
+
+          {/* Dropdown 1: امور تخصصی */}
+          <div
+            className="relative"
+            onMouseEnter={() => setOpenDropdown('specialized')}
+            onMouseLeave={() => setOpenDropdown(null)}
+          >
+            <button
+              className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                ['licenses', 'tax', 'advertising', 'welfare', 'classifieds', 'education', 'regulations'].includes(
+                  currentTab
+                )
+                  ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                  : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+              }`}
+            >
+              <span>امور تخصصی و صنفی</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#777F87]" />
+            </button>
+
+            {openDropdown === 'specialized' && (
+              <div className="absolute right-0 top-full w-60 bg-white border border-[#E9ECEF] rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <button
+                  onClick={() => navigateTo('licenses')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <UserCheck className="w-4 h-4 text-[#FF9D50]" />
+                  <span>امور پروانه‌ها و مطب</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('tax')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <Scale className="w-4 h-4 text-[#FF9D50]" />
+                  <span>امور مالیاتی پزشکان</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('advertising')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#FF9D50]" />
+                  <span>ضوابط و مجوز تبلیغات</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('education')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <GraduationCap className="w-4 h-4 text-[#FF9D50]" />
+                  <span>آموزش مداوم CME</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('regulations')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <FileText className="w-4 h-4 text-[#FF9D50]" />
+                  <span>قوانین و تعرفه‌ها</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('classifieds')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <Briefcase className="w-4 h-4 text-[#FF9D50]" />
+                  <span>نیازمندی‌ها و فرصت‌ها</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Dropdown 2: ساختار سازمان */}
+          <div
+            className="relative"
+            onMouseEnter={() => setOpenDropdown('org')}
+            onMouseLeave={() => setOpenDropdown(null)}
+          >
+            <button
+              className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                ['departments', 'about', 'contact'].includes(currentTab)
+                  ? 'bg-[#F7F8F7] text-[#20242A] font-bold border-b-2 border-[#FF9D50]'
+                  : 'hover:text-[#1DCED8] hover:bg-[#F7F8F7]'
+              }`}
+            >
+              <span>درباره و ساختار</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#777F87]" />
+            </button>
+
+            {openDropdown === 'org' && (
+              <div className="absolute right-0 top-full w-52 bg-white border border-[#E9ECEF] rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <button
+                  onClick={() => navigateTo('departments')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <Building2 className="w-4 h-4 text-[#FF9D50]" />
+                  <span>کمیسیون‌ها و واحدها</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('about')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <Info className="w-4 h-4 text-[#FF9D50]" />
+                  <span>معرفی و هیئت مدیره</span>
+                </button>
+                <button
+                  onClick={() => navigateTo('contact')}
+                  className="w-full text-right px-4 py-2 hover:bg-[#F7F8F7] flex items-center gap-2.5 text-xs text-[#20242A]"
+                >
+                  <Phone className="w-4 h-4 text-[#FF9D50]" />
+                  <span>ارتباط و نشانی</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </nav>
+
+        {/* Zone 3: 1 Primary Action + Command Palette Search Trigger */}
+        <div className="hidden lg:flex items-center gap-3 shrink-0">
           {onOpenCommandPalette && (
             <button
               onClick={onOpenCommandPalette}
-              className="flex items-center gap-2 text-xs bg-[#F5F7FA] hover:bg-[#E2E8F0] border border-[#CBD5E1] px-3 py-2 rounded-lg text-slate-700 transition-all font-medium group"
-              title="باز کردن جستجوی سریع با کیبورد (⌘K)"
+              className="flex items-center gap-2 text-xs bg-[#F7F8F7] hover:bg-[#E9ECEF] border border-[#E9ECEF] px-3 py-2 rounded-xl text-[#20242A] transition-all font-medium group"
+              title="جستجوی سریع با کیبورد (⌘K)"
             >
-              <Search className="w-3.5 h-3.5 text-[#2463A6] group-hover:scale-110 transition-transform" />
-              <span>جستجوی هوشمند</span>
-              <kbd className="text-[10px] bg-white border border-slate-300 font-mono text-slate-600 px-1.5 py-0.5 rounded shadow-2xs">
+              <Search className="w-3.5 h-3.5 text-[#777F87] group-hover:text-[#FF9D50] transition-colors" />
+              <span className="hidden sm:inline">جستجو</span>
+              <kbd className="text-[10px] bg-white border border-[#E9ECEF] font-mono text-[#777F87] px-1.5 py-0.5 rounded shadow-2xs">
                 ⌘K
               </kbd>
             </button>
           )}
 
-          <form onSubmit={handleSearchSubmit} className="relative w-64">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجو در پزشکان و اخبار..."
-              className="w-full text-xs bg-[#F5F7FA] border border-[#E2E8F0] rounded-lg pr-8 pl-3 py-2 text-[#202B38] placeholder-[#667085] focus:outline-none focus:border-[#2463A6] focus:bg-white transition-all"
-            />
-            <Search className="w-3.5 h-3.5 text-[#667085] absolute right-2.5 top-2.5 pointer-events-none" />
-          </form>
-
           <button
             onClick={() => navigateTo('contact')}
-            className="flex items-center gap-1.5 text-xs font-medium text-[#17365D] border border-[#CBD5E1] hover:border-[#17365D] px-3.5 py-2 rounded-lg bg-white hover:bg-[#F5F7FA] transition-colors whitespace-nowrap shrink-0"
+            className="flex items-center gap-2 text-xs font-bold text-[#20242A] bg-[#FF9D50] hover:bg-[#ff8f38] px-4 py-2 rounded-xl shadow-2xs transition-all whitespace-nowrap shrink-0"
           >
-            <span>میز خدمت</span>
+            <span>میز خدمت و استعلام</span>
           </button>
         </div>
 
@@ -113,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
         <div className="flex items-center gap-2 lg:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-[#17365D] hover:bg-[#F5F7FA] border border-[#E2E8F0] focus:outline-none"
+            className="p-2 rounded-xl text-[#20242A] bg-[#F7F8F7] border border-[#E9ECEF] focus:outline-none"
             aria-label="باز کردن منو"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -121,426 +282,182 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
         </div>
       </div>
 
-      {/* 3. Primary Navigation Bar */}
-      <nav className="hidden lg:block bg-white border-t border-[#E2E8F0] text-xs font-medium">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            {/* خانه */}
-            <button
-              onClick={() => navigateTo('home')}
-              className={`px-3.5 py-3 transition-colors border-b-2 font-medium ${
-                currentTab === 'home'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              خانه
-            </button>
-
-            {/* اخبار و اطلاعیه‌ها */}
-            <button
-              onClick={() => navigateTo('news')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'news'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              اخبار و اطلاعیه‌ها
-            </button>
-
-            {/* خدمات اعضا */}
-            <button
-              onClick={() => navigateTo('services')}
-              className={`px-3.5 py-3 transition-colors border-b-2 flex items-center gap-1 ${
-                currentTab === 'services'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              <span>خدمات اعضا</span>
-              <span className="text-[10px] bg-[#EFF6FC] text-[#2463A6] px-1.5 py-0.5 rounded font-normal">
-                پرمراجعه
-              </span>
-            </button>
-
-            {/* جستجوی پزشکان */}
-            <button
-              onClick={() => navigateTo('physicians')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'physicians'
-                  ? 'border-[#24845B] text-[#24845B] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#24845B] hover:border-slate-300'
-              }`}
-            >
-              جستجوی پزشکان
-            </button>
-
-            {/* مراکز درمانی */}
-            <button
-              onClick={() => navigateTo('facilities')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'facilities'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              مراکز درمانی
-            </button>
-
-            {/* نیازمندی‌ها */}
-            <button
-              onClick={() => navigateTo('classifieds')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'classifieds'
-                  ? 'border-[#C77920] text-[#C77920] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#C77920] hover:border-slate-300'
-              }`}
-            >
-              نیازمندی‌های پزشکی
-            </button>
-
-            {/* آموزش و بازآموزی */}
-            <button
-              onClick={() => navigateTo('education')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'education'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              آموزش و بازآموزی
-            </button>
-
-            {/* قوانین و بخشنامه‌ها */}
-            <button
-              onClick={() => navigateTo('regulations')}
-              className={`px-3.5 py-3 transition-colors border-b-2 ${
-                currentTab === 'regulations'
-                  ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                  : 'border-transparent text-[#202B38] hover:text-[#2463A6] hover:border-slate-300'
-              }`}
-            >
-              قوانین و تعرفه‌ها
-            </button>
-
-            {/* منوی چندبخشی: امور تخصصی */}
-            <div
-              className="relative"
-              onMouseEnter={() => setOpenDropdown('specialized')}
-              onMouseLeave={() => setOpenDropdown(null)}
-            >
-              <button
-                className={`px-3.5 py-3 transition-colors border-b-2 flex items-center gap-1 ${
-                  ['licenses', 'tax', 'advertising', 'welfare'].includes(currentTab)
-                    ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                    : 'border-transparent text-[#202B38] hover:text-[#2463A6]'
-                }`}
-              >
-                <span>امور تخصصی</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#667085]" />
-              </button>
-
-              {openDropdown === 'specialized' && (
-                <div className="absolute right-0 top-full w-56 bg-white border border-[#E2E8F0] rounded-b-lg shadow-lg py-2 z-50">
-                  <button
-                    onClick={() => navigateTo('licenses')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <UserCheck className="w-4 h-4 text-[#2463A6]" />
-                    <span>امور پروانه‌ها و مطب</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('tax')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <Scale className="w-4 h-4 text-[#2463A6]" />
-                    <span>امور مالیاتی پزشکان</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('advertising')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-[#2463A6]" />
-                    <span>ضوابط و مجوز تبلیغات</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('welfare')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <Briefcase className="w-4 h-4 text-[#2463A6]" />
-                    <span>رفاه و خدمات اعضا</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* منوی چندبخشی: سازمان */}
-            <div
-              className="relative"
-              onMouseEnter={() => setOpenDropdown('org')}
-              onMouseLeave={() => setOpenDropdown(null)}
-            >
-              <button
-                className={`px-3.5 py-3 transition-colors border-b-2 flex items-center gap-1 ${
-                  ['departments', 'about', 'contact'].includes(currentTab)
-                    ? 'border-[#2463A6] text-[#2463A6] font-semibold'
-                    : 'border-transparent text-[#202B38] hover:text-[#2463A6]'
-                }`}
-              >
-                <span>درباره و ساختار</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#667085]" />
-              </button>
-
-              {openDropdown === 'org' && (
-                <div className="absolute right-0 top-full w-56 bg-white border border-[#E2E8F0] rounded-b-lg shadow-lg py-2 z-50">
-                  <button
-                    onClick={() => navigateTo('departments')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <Building2 className="w-4 h-4 text-[#2463A6]" />
-                    <span>کمیسیون‌ها و واحدها</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('about')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <Info className="w-4 h-4 text-[#2463A6]" />
-                    <span>معرفی و هیئت مدیره</span>
-                  </button>
-                  <button
-                    onClick={() => navigateTo('contact')}
-                    className="w-full text-right px-4 py-2 hover:bg-[#F5F7FA] flex items-center gap-2 text-slate-800"
-                  >
-                    <Phone className="w-4 h-4 text-[#2463A6]" />
-                    <span>ارتباط و نشانی</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* عضویت / پیگیری سریع */}
-          <div className="flex items-center gap-2 py-2">
-            <button
-              onClick={() => navigateTo('services')}
-              className="text-[#2463A6] hover:bg-[#EFF6FC] px-3 py-1.5 rounded border border-[#2463A6]/30 font-medium transition-colors"
-            >
-              پیگیری درخواست‌ها
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* 4. Optimized & Redesigned Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-md border-t border-[#E2E8F0] px-4 py-5 space-y-5 shadow-2xl animate-in slide-in-from-top-2 duration-200">
-          {/* Mobile search bar */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجوی سریع در پزشکان، خدمات و قوانین..."
-              className="w-full text-xs bg-[#F5F7FA] border border-[#CBD5E1] rounded-xl pr-9 pl-4 py-2.5 text-[#202B38] placeholder-slate-400 focus:outline-none focus:border-[#2463A6] focus:bg-white transition-all shadow-2xs"
+      {/* Modern Animated Mobile Navigation Drawer */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            {/* Backdrop Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] lg:hidden"
             />
-            <Search className="w-4 h-4 text-[#2463A6] absolute right-3 top-3" />
-          </form>
 
-          {/* Section 1: خدمات اصلی و سامانه اعضا */}
-          <div className="space-y-2">
-            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
-              <span>خدمات اصلی و میز خدمات</span>
-              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-              <button
-                onClick={() => navigateTo('home')}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
-                  currentTab === 'home'
-                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <Home className="w-4 h-4 shrink-0 text-sky-400" />
-                <span>صفحه اصلی</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('services')}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
-                  currentTab === 'services'
-                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <Award className="w-4 h-4 shrink-0 text-sky-400" />
-                <span>خدمات اعضا</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('physicians')}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
-                  currentTab === 'physicians'
-                    ? 'bg-[#24845B] text-white font-bold shadow-xs'
-                    : 'bg-emerald-50/80 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/60'
-                }`}
-              >
-                <Search className="w-4 h-4 shrink-0 text-emerald-600" />
-                <span>جستجوی پزشکان</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('facilities')}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all ${
-                  currentTab === 'facilities'
-                    ? 'bg-[#17365D] text-white font-bold shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <Building2 className="w-4 h-4 shrink-0 text-slate-500" />
-                <span>مراکز درمانی</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('classifieds')}
-                className={`p-2.5 rounded-xl text-right flex items-center gap-2 transition-all col-span-2 ${
-                  currentTab === 'classifieds'
-                    ? 'bg-[#C77920] text-white font-bold shadow-xs'
-                    : 'bg-amber-50/80 hover:bg-amber-100 text-amber-900 border border-amber-200/60'
-                }`}
-              >
-                <Briefcase className="w-4 h-4 shrink-0 text-[#C77920]" />
-                <span>نیازمندی‌های کاربری و فرصت‌های شغلی</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Section 2: اطلاع‌رسانی، بخشنامه‌ها و آموزش */}
-          <div className="space-y-2">
-            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
-              <span>اطلاع‌رسانی و آموزش</span>
-              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
-            </h4>
-            <div className="grid grid-cols-3 gap-2 text-xs font-medium">
-              <button
-                onClick={() => navigateTo('news')}
-                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
-                  currentTab === 'news'
-                    ? 'bg-[#17365D] text-white font-bold'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <Bell className="w-4 h-4 text-[#2463A6]" />
-                <span>اخبار</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('education')}
-                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
-                  currentTab === 'education'
-                    ? 'bg-[#17365D] text-white font-bold'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <GraduationCap className="w-4 h-4 text-[#2463A6]" />
-                <span>آموزش CME</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('regulations')}
-                className={`p-2.5 rounded-xl text-center flex flex-col items-center gap-1.5 transition-all ${
-                  currentTab === 'regulations'
-                    ? 'bg-[#17365D] text-white font-bold'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-800'
-                }`}
-              >
-                <FileText className="w-4 h-4 text-[#2463A6]" />
-                <span>قوانین</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Section 3: امور تخصصی و سازمان */}
-          <div className="space-y-2">
-            <h4 className="text-[11px] font-bold text-[#17365D] uppercase tracking-wider px-1 flex items-center justify-between">
-              <span>امور تخصصی و ساختار</span>
-              <span className="w-12 h-0.5 bg-[#2463A6]/20 rounded-full"></span>
-            </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-              <button
-                onClick={() => navigateTo('licenses')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'licenses' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <UserCheck className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>امور پروانه‌ها</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('tax')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'tax' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <Scale className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>امور مالیاتی</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('advertising')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'advertising' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>مجوز تبلیغات</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('welfare')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'welfare' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <Briefcase className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>خدمات رفاهی</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('departments')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'departments' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <Building2 className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>کمیسیون‌ها</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('about')}
-                className={`p-2 rounded-lg text-right flex items-center gap-2 ${
-                  currentTab === 'about' ? 'bg-[#EFF6FC] text-[#2463A6] font-bold' : 'hover:bg-slate-50 text-slate-700'
-                }`}
-              >
-                <Info className="w-3.5 h-3.5 text-[#2463A6]" />
-                <span>درباره سازمان</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-            <button
-              onClick={() => navigateTo('contact')}
-              className="w-full bg-[#17365D] hover:bg-[#2463A6] text-white font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+            {/* Sliding Drawer Sheet */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="fixed top-0 right-0 bottom-0 w-[85%] max-w-xs bg-white z-[101] lg:hidden shadow-2xl flex flex-col justify-between p-5 space-y-4 overflow-y-auto"
             >
-              <Phone className="w-4 h-4" />
-              <span>ارتباط و نشانی سازمان</span>
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="space-y-4">
+                {/* Header in Drawer */}
+                <div className="flex items-center justify-between pb-3 border-b border-[#E9ECEF]">
+                  <div className="flex items-center gap-2">
+                    <CouncilEmblem size={36} />
+                    <span className="font-bold text-xs text-[#20242A]">سازمان نظام پزشکی ایلام</span>
+                  </div>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleSearchSubmit} className="relative w-full">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="جستجوی سریع در پزشکان، خدمات و قوانین..."
+                    className="w-full text-xs bg-[#F7F8F7] border border-[#E9ECEF] rounded-xl pr-9 pl-4 py-2.5 text-[#20242A] placeholder-[#777F87] focus:outline-none focus:border-[#FF9D50] focus:bg-white transition-all"
+                  />
+                  <Search className="w-4 h-4 text-[#777F87] absolute right-3 top-3" />
+                </form>
+
+                <div className="grid grid-cols-1 gap-1.5 text-xs font-medium">
+                  <button
+                    onClick={() => navigateTo('home')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'home'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Home className="w-4 h-4 text-[#FF9D50]" />
+                      <span>صفحه اصلی</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('physicians')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'physicians'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Search className="w-4 h-4 text-[#55E07E]" />
+                      <span>جستجوی پزشکان</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('services')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'services'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Award className="w-4 h-4 text-[#1DCED8]" />
+                      <span>خدمات اعضا</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('facilities')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'facilities'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="w-4 h-4 text-[#777F87]" />
+                      <span>مراکز درمانی</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('news')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'news'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Bell className="w-4 h-4 text-[#FF9D50]" />
+                      <span>اخبار و ابلاغیه‌ها</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('education')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'education'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <GraduationCap className="w-4 h-4 text-[#1DCED8]" />
+                      <span>آموزش CME</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('regulations')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'regulations'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FileText className="w-4 h-4 text-[#777F87]" />
+                      <span>قوانین و تعرفه‌ها</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => navigateTo('classifieds')}
+                    className={`p-3 rounded-xl text-right flex items-center justify-between transition-all ${
+                      currentTab === 'classifieds'
+                        ? 'bg-[#20242A] text-white font-bold'
+                        : 'bg-[#F7F8F7] text-[#20242A] hover:bg-[#E9ECEF]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Briefcase className="w-4 h-4 text-[#FF9D50]" />
+                      <span>نیازمندی‌ها</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#E9ECEF] space-y-2">
+                <button
+                  onClick={() => navigateTo('contact')}
+                  className="w-full bg-[#FF9D50] hover:bg-[#ff8f38] text-[#20242A] font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>ارتباط و میز خدمت سازمان</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

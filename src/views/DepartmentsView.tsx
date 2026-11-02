@@ -18,26 +18,26 @@ export const DepartmentsView: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
-      {/* Title */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs text-[#2463A6] mb-1 font-semibold">
-              <Building2 className="w-4 h-4" />
-              <span>ساختار سازمانی و کمیسیون‌های تخصصی</span>
+      {/* Title Header */}
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brand-dark uppercase tracking-wide">
+              <Building2 className="w-4 h-4 text-[#FF9D50]" />
+              <span>ساختار سازمانی و کمیسیون‌های تخصصی استان ایلام</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#17365D]">
-              کمیسیون‌ها، دادسرا و واحدهای اجرایی نظام پزشکی ایلام
+            <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark tracking-tight">
+              کمیسیون‌ها، دادسرا و واحدهای اجرایی نظام پزشکی
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+            <p className="text-sm text-brand-muted max-w-2xl leading-relaxed">
               معرفی شرح وظایف قانونی، مسئولین واحدها، خدمات قابل ارائه، ساعات پاسخگویی حضوری و
               شماره‌های تماس داخلی هر بخش.
             </p>
           </div>
 
-          <div className="bg-[#EFF6FC] border border-[#2463A6]/30 rounded-xl p-3 text-xs text-left">
-            <span className="text-[#2463A6] font-bold block">مجموع کمیسیون‌ها و واحدها:</span>
-            <span className="text-slate-800 font-sans font-bold text-sm">
+          <div className="bg-[#FFF9D8]/70 border border-[#FF9D50]/30 rounded-2xl p-4 text-xs shrink-0">
+            <span className="text-brand-muted block text-[11px]">مجموع کمیسیون‌ها و واحدها:</span>
+            <span className="text-brand-dark font-sans font-bold text-base tabular-nums">
               {DEPARTMENTS_DATA.length} واحد تخصصی
             </span>
           </div>
@@ -47,60 +47,60 @@ export const DepartmentsView: React.FC = () => {
       {/* 2-column layout: List on right (desktop), details on left */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Navigation Sidebar List (4 cols) */}
-        <div className="lg:col-span-4 space-y-2">
+        <div className="lg:col-span-4 space-y-2.5">
           {DEPARTMENTS_DATA.map((dept) => {
             const isSelected = dept.id === selectedDept.id;
             return (
               <button
                 key={dept.id}
                 onClick={() => setSelectedDept(dept)}
-                className={`w-full text-right p-4 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                className={`w-full text-right p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                   isSelected
-                    ? 'bg-[#17365D] text-white border-[#17365D] shadow-xs'
-                    : 'bg-white hover:bg-slate-50 text-slate-800 border-[#E2E8F0]'
+                    ? 'bg-brand-dark text-white border-brand-dark shadow-xs'
+                    : 'bg-white hover:bg-[#F7F8F7] text-brand-dark border-brand-border'
                 }`}
               >
                 <div>
                   <h4 className="text-xs sm:text-sm font-bold leading-snug">{dept.title}</h4>
-                  <p className={`text-[11px] mt-1 ${isSelected ? 'text-slate-200' : 'text-slate-500'}`}>
+                  <p className={`text-[11px] mt-1 ${isSelected ? 'text-slate-300' : 'text-brand-muted'}`}>
                     مسئول: {dept.director}
                   </p>
                 </div>
-                <ChevronLeft className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-slate-400'}`} />
+                <ChevronLeft className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#FF9D50]' : 'text-brand-muted'}`} />
               </button>
             );
           })}
         </div>
 
         {/* Detailed Department Panel (8 cols) */}
-        <div className="lg:col-span-8 bg-white border border-[#E2E8F0] rounded-xl p-6 sm:p-7 shadow-xs space-y-6">
+        <div className="lg:col-span-8 bg-white border border-brand-border rounded-2xl p-6 sm:p-8 space-y-6">
           {/* Header */}
-          <div className="pb-4 border-b border-slate-200">
-            <span className="text-xs font-semibold text-[#2463A6] bg-[#EFF6FC] px-2.5 py-0.5 rounded">
+          <div className="pb-4 border-b border-brand-border space-y-2">
+            <span className="text-xs font-semibold text-brand-muted">
               واحد اداری / کمیسیون تخصصی
             </span>
-            <h3 className="text-lg sm:text-xl font-bold text-[#17365D] mt-2">
+            <h3 className="text-xl sm:text-2xl font-bold text-brand-dark">
               {selectedDept.title}
             </h3>
-            <p className="text-xs text-slate-600 mt-1">
-              مسئول واحد: <strong className="text-slate-900">{selectedDept.director}</strong> ({selectedDept.role})
+            <p className="text-xs text-brand-muted">
+              مسئول واحد: <strong className="text-brand-dark">{selectedDept.director}</strong> ({selectedDept.role})
             </p>
           </div>
 
           {/* Description */}
-          <div className="text-xs sm:text-sm text-slate-700 leading-relaxed bg-[#F8FAFC] p-4 rounded-xl border border-slate-200">
+          <div className="text-xs sm:text-sm text-brand-dark leading-relaxed bg-[#F7F8F7] p-5 rounded-2xl border border-brand-border">
             {selectedDept.description}
           </div>
 
           {/* Responsibilities */}
-          <div>
-            <h4 className="text-sm font-bold text-[#17365D] mb-2.5 flex items-center gap-1.5">
-              <CheckCircle className="w-4 h-4 text-[#24845B]" />
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-brand-dark flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-[#55E07E]" />
               <span>شرح وظایف و ماموریت‌های قانونی واحد</span>
             </h4>
-            <ul className="space-y-1.5 text-xs text-slate-700 list-disc list-inside">
+            <ul className="space-y-2 text-xs text-brand-muted list-disc list-inside leading-relaxed">
               {selectedDept.responsibilities.map((r, idx) => (
-                <li key={idx} className="leading-relaxed">
+                <li key={idx}>
                   {r}
                 </li>
               ))}
@@ -108,16 +108,16 @@ export const DepartmentsView: React.FC = () => {
           </div>
 
           {/* Services */}
-          <div>
-            <h4 className="text-sm font-bold text-[#17365D] mb-2.5 flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-[#2463A6]" />
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-brand-dark flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#1DCED8]" />
               <span>خدمات قابل ارائه به مراجعین و همکاران</span>
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
               {selectedDept.services.map((s, idx) => (
                 <div
                   key={idx}
-                  className="bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800"
+                  className="bg-[#F7F8F7] border border-brand-border rounded-xl p-3 text-brand-dark"
                 >
                   {s}
                 </div>
@@ -126,24 +126,24 @@ export const DepartmentsView: React.FC = () => {
           </div>
 
           {/* Contact Details Grid */}
-          <div className="bg-[#EFF6FC] border border-[#2463A6]/20 rounded-xl p-4 text-xs space-y-2.5">
-            <h4 className="font-bold text-[#17365D] text-xs">اطلاعات دسترسی و پاسخگویی مستقیم:</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-slate-700">
+          <div className="bg-[#FFF9D8]/70 border border-[#FF9D50]/30 rounded-2xl p-5 text-xs space-y-3">
+            <h4 className="font-bold text-brand-dark text-xs sm:text-sm">اطلاعات دسترسی و پاسخگویی مستقیم:</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-brand-dark">
               <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#2463A6]" />
-                <span>مرکز تلفن: {selectedDept.phone} (<strong>{selectedDept.extension}</strong>)</span>
+                <Phone className="w-4 h-4 text-[#FF9D50]" />
+                <span>مرکز تلفن: <span className="tabular-nums">{selectedDept.phone}</span> (داخلی <strong className="tabular-nums">{selectedDept.extension}</strong>)</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#2463A6]" />
+                <Mail className="w-4 h-4 text-[#1DCED8]" />
                 <span className="font-mono text-[11px]">{selectedDept.email}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-[#2463A6]" />
-                <span>ساعات کار: {selectedDept.officeHours}</span>
+                <Clock className="w-4 h-4 text-brand-muted" />
+                <span>ساعات کار: <span className="tabular-nums">{selectedDept.officeHours}</span></span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#2463A6]" />
-                <span className="line-clamp-1">{selectedDept.location}</span>
+                <MapPin className="w-4 h-4 text-brand-muted" />
+                <span>{selectedDept.location}</span>
               </div>
             </div>
           </div>

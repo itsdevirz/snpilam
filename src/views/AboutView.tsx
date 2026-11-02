@@ -25,18 +25,18 @@ export const AboutView: React.FC = () => {
 
   return (
     <div className="w-full space-y-8">
-      {/* Title */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 sm:p-8 shadow-xs">
+      {/* Title Header */}
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <CouncilEmblem size={80} className="shrink-0" />
-          <div>
-            <span className="text-xs font-semibold text-[#2463A6] bg-[#EFF6FC] px-2.5 py-0.5 rounded">
+          <div className="space-y-2">
+            <span className="text-xs font-semibold text-brand-dark uppercase tracking-wide">
               معرفی سازمان و جایگاه قانونی
             </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#17365D] mt-2">
-              درباره سازمان نظام پزشکی شهرستان و استان ایلام
+            <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark tracking-tight">
+              درباره سازمان نظام پزشکی استان ایلام
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+            <p className="text-sm text-brand-muted leading-relaxed">
               نهاد مستقل صنفی و حرفه‌ای کادر پزشکی دارای شخصیت حقوقی مستقل بر اساس قانون مصوب
               مجلس شورای اسلامی و مجمع تشخیص مصلحت نظام.
             </p>
@@ -45,19 +45,19 @@ export const AboutView: React.FC = () => {
       </div>
 
       {/* President Message */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 sm:p-8 shadow-xs space-y-4">
-        <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-          <div className="w-12 h-12 rounded-full bg-[#17365D] text-white flex items-center justify-center font-bold text-lg">
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8 space-y-5">
+        <div className="flex items-center gap-4 pb-4 border-b border-brand-border">
+          <div className="w-12 h-12 rounded-2xl bg-brand-dark text-white flex items-center justify-center font-bold text-lg">
             د.م
           </div>
           <div>
-            <h3 className="text-base font-bold text-[#17365D]">{COUNCIL_INFO.president.name}</h3>
-            <p className="text-xs text-[#2463A6] font-semibold">{COUNCIL_INFO.president.title}</p>
+            <h3 className="text-base font-bold text-brand-dark">{COUNCIL_INFO.president.name}</h3>
+            <p className="text-xs text-[#FF9D50] font-semibold mt-0.5">{COUNCIL_INFO.president.title}</p>
           </div>
         </div>
 
-        <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3 bg-[#F8FAFC] p-5 rounded-xl border border-slate-200">
-          <p className="font-bold text-[#17365D]">
+        <div className="text-xs sm:text-sm text-brand-dark leading-relaxed space-y-3 bg-[#F7F8F7] p-6 rounded-2xl border border-brand-border">
+          <p className="font-bold text-brand-dark text-sm">
             پیام ریاست سازمان نظام پزشکی استان ایلام به جامعه پزشکی و هم‌استانی‌های ارجمند:
           </p>
           <p>
@@ -67,9 +67,9 @@ export const AboutView: React.FC = () => {
           </p>
           <p>
             نظام پزشکی ایلام در دوره جدید، محور فعالیت‌های خود را بر سه اصل بنیادین استوار ساخته است:
-            <strong> ارتقای سطح علمی از طریق بازآموزی‌های مدرن</strong>،{' '}
-            <strong>صیانت قاطع از حقوق صنفی و رفاهی همکاران</strong> و{' '}
-            <strong>نظارت مستمر بر موازین اخلاقی و دفاع از حقوق حقه بیماران و مراجعین</strong>.
+            <strong className="text-brand-dark"> ارتقای سطح علمی از طریق بازآموزی‌های مدرن</strong>،{' '}
+            <strong className="text-brand-dark">صیانت قاطع از حقوق صنفی و رفاهی همکاران</strong> و{' '}
+            <strong className="text-brand-dark">نظارت مستمر بر موازین اخلاقی و دفاع از حقوق حقه بیماران و مراجعین</strong>.
           </p>
           <p>
             امید است با گسترش خدمات الکترونیک و شفافیت اداری، گامی موثر در جهت اعتلای جایگاه سلامت در
@@ -80,34 +80,34 @@ export const AboutView: React.FC = () => {
 
       {/* Organizational Goals */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs space-y-2">
-          <div className="w-9 h-9 rounded-lg bg-[#EFF6FC] text-[#2463A6] flex items-center justify-center">
+        <div className="bg-white border border-brand-border rounded-2xl p-6 space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[#FFF9D8] text-[#FF9D50] flex items-center justify-center">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <h4 className="text-sm font-bold text-[#17365D]">صیانت از حقوق حرفه‌ای</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <h4 className="text-base font-bold text-brand-dark">صیانت از حقوق حرفه‌ای</h4>
+          <p className="text-xs text-brand-muted leading-relaxed">
             دفاع از استقلال علمی و جایگاه صنفی پزشکان در برابر تصمیمات غیرکارشناسی، پیگیری مطالبات
             بیمه‌ای و حل اختلافات حقوقی.
           </p>
         </div>
 
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs space-y-2">
-          <div className="w-9 h-9 rounded-lg bg-[#EAF6EE] text-[#24845B] flex items-center justify-center">
+        <div className="bg-white border border-brand-border rounded-2xl p-6 space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[#55E07E]/10 text-[#55E07E] flex items-center justify-center">
             <Award className="w-5 h-5" />
           </div>
-          <h4 className="text-sm font-bold text-[#17365D]">اخلاق پزشکی و دادگاه انتظامی</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <h4 className="text-base font-bold text-brand-dark">اخلاق پزشکی و دادگاه انتظامی</h4>
+          <p className="text-xs text-brand-muted leading-relaxed">
             رسیدگی دقیق، عادلانه و بی‌طرفانه به شکایات مراجعین و قصورات احتمالی از طریق قضات و
             کارشناسان رسمی معتمد دادسرای انتظامی.
           </p>
         </div>
 
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs space-y-2">
-          <div className="w-9 h-9 rounded-lg bg-[#FDF4E7] text-[#C77920] flex items-center justify-center">
+        <div className="bg-white border border-brand-border rounded-2xl p-6 space-y-3">
+          <div className="w-10 h-10 rounded-xl bg-[#1DCED8]/10 text-[#1DCED8] flex items-center justify-center">
             <Users className="w-5 h-5" />
           </div>
-          <h4 className="text-sm font-bold text-[#17365D]">پوشش فراگیر در ۱۲ شهرستان</h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <h4 className="text-base font-bold text-brand-dark">پوشش فراگیر در ۱۲ شهرستان</h4>
+          <p className="text-xs text-brand-muted leading-relaxed">
             نظارت و ارائه خدمات صدور پروانه به تمامی شهرستان‌های ایلام، ایوان، دهلران، مهران، دره‌شهر،
             آبدانان، چرداول، بدره، سیروان، ملکشاهی، چوار و هلیلان.
           </p>
@@ -115,9 +115,9 @@ export const AboutView: React.FC = () => {
       </div>
 
       {/* Board of Directors */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 sm:p-8 shadow-xs space-y-4">
-        <h3 className="text-base font-bold text-[#17365D] flex items-center gap-2">
-          <Users className="w-5 h-5 text-[#2463A6]" />
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8 space-y-5">
+        <h3 className="text-lg font-bold text-brand-dark flex items-center gap-2">
+          <Users className="w-5 h-5 text-[#FF9D50]" />
           <span>اعضای هیئت مدیره سازمان نظام پزشکی استان ایلام (دوره ششم)</span>
         </h3>
 
@@ -125,11 +125,11 @@ export const AboutView: React.FC = () => {
           {boardMembers.map((m, idx) => (
             <div
               key={idx}
-              className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-1.5"
+              className="bg-[#F7F8F7] border border-brand-border rounded-xl p-5 text-xs space-y-2"
             >
-              <h4 className="font-bold text-[#17365D] text-sm">{m.name}</h4>
-              <p className="text-[#2463A6] font-medium text-[11px]">{m.role}</p>
-              <p className="text-slate-500 text-[11px]">{m.specialty}</p>
+              <h4 className="font-bold text-brand-dark text-sm">{m.name}</h4>
+              <p className="text-[#FF9D50] font-semibold text-xs">{m.role}</p>
+              <p className="text-brand-muted text-xs">{m.specialty}</p>
             </div>
           ))}
         </div>

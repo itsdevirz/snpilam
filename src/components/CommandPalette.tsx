@@ -71,7 +71,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[150] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[150] flex items-start justify-center pt-16 sm:pt-24 px-4 bg-[#20242A]/60 backdrop-blur-sm">
         {/* Backdrop click */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -87,26 +87,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: -10 }}
           transition={{ type: 'spring', stiffness: 450, damping: 30 }}
-          className="relative bg-white border border-slate-200 shadow-2xl rounded-2xl max-w-2xl w-full overflow-hidden text-xs z-10"
+          className="relative bg-white border border-[#E9ECEF] shadow-2xl rounded-2xl max-w-2xl w-full overflow-hidden text-xs z-10"
         >
           {/* Top Search Input Bar */}
-          <div className="relative flex items-center border-b border-slate-200 px-4 py-3 bg-slate-50/50">
-            <Search className="w-4 h-4 text-slate-400 shrink-0 mr-1" />
+          <div className="relative flex items-center border-b border-[#E9ECEF] px-4 py-3 bg.F7F8F7 bg-[#F7F8F7]/80">
+            <Search className="w-4 h-4 text-[#777F87] shrink-0 ml-2" />
             <input
               type="text"
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="جستجوی سریع پزشک، اطلاعیه، قوانین یا خدمات (⌘K)..."
-              className="w-full bg-transparent px-3 py-1 text-slate-900 text-xs placeholder:text-slate-400 focus:outline-none"
+              className="w-full bg-transparent px-2 py-1 text-[#20242A] text-xs placeholder:text-[#777F87] focus:outline-none"
             />
             <div className="flex items-center gap-1.5 shrink-0">
-              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono text-slate-500 bg-slate-200/80 rounded border border-slate-300">
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-mono text-[#777F87] bg-white rounded border border-[#E9ECEF]">
                 <Command className="w-3 h-3" /> K
               </kbd>
               <button
                 onClick={onClose}
-                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+                className="p-1 rounded-md text-[#777F87] hover:text-[#20242A] hover:bg-[#E9ECEF] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -118,9 +118,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             {/* 1. Physicians Results */}
             {filteredPhysicians.length > 0 && (
               <div className="space-y-1">
-                <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-bold text-[#777F87] flex items-center justify-between">
                   <span>پزشکان و اعضا</span>
-                  <span className="font-mono text-[10px]">{filteredPhysicians.length} مورد</span>
+                  <span className="font-mono text-[10px] tabular-nums">{filteredPhysicians.length} مورد</span>
                 </div>
                 {filteredPhysicians.map((p) => (
                   <button
@@ -129,18 +129,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       onSelectTab('physicians');
                       onClose();
                     }}
-                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#EFF6FC] transition-colors flex items-center justify-between group"
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#FFF9D8] transition-colors flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-[#2463A6]/10 text-[#2463A6] flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-[#FF9D50]/10 text-[#FF9D50] flex items-center justify-center shrink-0">
                         <User className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <strong className="block text-slate-900 font-bold text-xs">{p.name}</strong>
-                        <span className="text-slate-500 text-[11px]">{p.specialty} · کد نظام: {p.medicalRegNo}</span>
+                        <strong className="block text-[#20242A] font-bold text-xs">{p.name}</strong>
+                        <span className="text-[#777F87] text-[11px]">{p.specialty} · کد نظام: <span className="tabular-nums">{p.medicalRegNo}</span></span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowLeft className="w-3.5 h-3.5 text-[#FF9D50] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
@@ -149,9 +149,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             {/* 2. Announcements Results */}
             {filteredAnnouncements.length > 0 && (
               <div className="space-y-1">
-                <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-bold text-[#777F87] flex items-center justify-between">
                   <span>اطلاعیه‌های رسمی</span>
-                  <span className="font-mono text-[10px]">{filteredAnnouncements.length} مورد</span>
+                  <span className="font-mono text-[10px] tabular-nums">{filteredAnnouncements.length} مورد</span>
                 </div>
                 {filteredAnnouncements.map((a) => (
                   <button
@@ -161,18 +161,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       else onSelectTab('news');
                       onClose();
                     }}
-                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#FCECEF] transition-colors flex items-center justify-between group"
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#FFF9D8] transition-colors flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-[#C83E4D]/10 text-[#C83E4D] flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-[#1DCED8]/10 text-[#1DCED8] flex items-center justify-center shrink-0">
                         <Bell className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <strong className="block text-slate-900 font-bold text-xs line-clamp-1">{a.title}</strong>
-                        <span className="text-slate-500 text-[11px]">{a.category} · {a.date}</span>
+                        <strong className="block text-[#20242A] font-bold text-xs line-clamp-1">{a.title}</strong>
+                        <span className="text-[#777F87] text-[11px]">{a.category} · <span className="tabular-nums">{a.date}</span></span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowLeft className="w-3.5 h-3.5 text-[#1DCED8] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
@@ -181,9 +181,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             {/* 3. Services Results */}
             {filteredServices.length > 0 && (
               <div className="space-y-1">
-                <div className="px-3 py-1 text-[11px] font-bold text-slate-400 flex items-center justify-between">
+                <div className="px-3 py-1 text-[11px] font-bold text-[#777F87] flex items-center justify-between">
                   <span>خدمات اعضا</span>
-                  <span className="font-mono text-[10px]">{filteredServices.length} مورد</span>
+                  <span className="font-mono text-[10px] tabular-nums">{filteredServices.length} مورد</span>
                 </div>
                 {filteredServices.map((s) => (
                   <button
@@ -193,18 +193,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       else onSelectTab('services');
                       onClose();
                     }}
-                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#EAF6EE] transition-colors flex items-center justify-between group"
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-[#F7F8F7] transition-colors flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-[#24845B]/10 text-[#24845B] flex items-center justify-center shrink-0">
-                        <Award className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg bg-[#55E07E]/10 text-[#20242A] flex items-center justify-center shrink-0 font-bold">
+                        <Award className="w-3.5 h-3.5 text-[#20242A]" />
                       </div>
                       <div>
-                        <strong className="block text-slate-900 font-bold text-xs">{s.title}</strong>
-                        <span className="text-slate-500 text-[11px]">{s.category} · واحد {s.department}</span>
+                        <strong className="block text-[#20242A] font-bold text-xs">{s.title}</strong>
+                        <span className="text-[#777F87] text-[11px]">{s.category} · واحد {s.department}</span>
                       </div>
                     </div>
-                    <ArrowLeft className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowLeft className="w-3.5 h-3.5 text-[#20242A] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                 ))}
               </div>
@@ -212,20 +212,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
             {/* Empty State */}
             {totalResults === 0 && (
-              <div className="text-center py-8 text-slate-400 space-y-1">
-                <Search className="w-6 h-6 mx-auto text-slate-300" />
-                <p className="font-medium">نتیجه‌ای متناسب با عبارت «{query}» یافت نشد.</p>
-                <p className="text-[11px] text-slate-400">عبارت دیگری را امتحان کنید یا با شماره نظام پزشکی جستجو نمایید.</p>
+              <div className="text-center py-8 text-[#777F87] space-y-1">
+                <Search className="w-6 h-6 mx-auto text-[#777F87]/50" />
+                <p className="font-medium text-[#20242A]">نتیجه‌ای متناسب با عبارت «{query}» یافت نشد.</p>
+                <p className="text-[11px] text-[#777F87]">عبارت دیگری را امتحان کنید یا با شماره نظام پزشکی جستجو نمایید.</p>
               </div>
             )}
           </div>
 
           {/* Quick Shortcuts Footer */}
-          <div className="bg-slate-50 border-t border-slate-200 p-2.5 px-4 text-[11px] text-slate-400 flex items-center justify-between">
+          <div className="bg-[#F7F8F7] border-t border-[#E9ECEF] p-2.5 px-4 text-[11px] text-[#777F87] flex items-center justify-between">
             <span>سازمان نظام پزشکی استان ایلام</span>
             <div className="flex items-center gap-3">
-              <span>برای جابه‌جایی <kbd className="px-1.5 py-0.5 bg-white border rounded text-[10px]">↑↓</kbd></span>
-              <span>بستن <kbd className="px-1.5 py-0.5 bg-white border rounded text-[10px]">Esc</kbd></span>
+              <span>برای جابه‌جایی <kbd className="px-1.5 py-0.5 bg-white border border-[#E9ECEF] rounded text-[10px]">↑↓</kbd></span>
+              <span>بستن <kbd className="px-1.5 py-0.5 bg-white border border-[#E9ECEF] rounded text-[10px]">Esc</kbd></span>
             </div>
           </div>
         </motion.div>

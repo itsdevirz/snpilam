@@ -17,20 +17,20 @@ export const TaxAffairsView: React.FC = () => {
 
   return (
     <div className="w-full space-y-6">
-      {/* Title */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-1.5 text-xs text-[#2463A6] mb-1 font-semibold">
-              <Scale className="w-4 h-4" />
+      {/* Title Header */}
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brand-dark uppercase tracking-wide">
+              <Scale className="w-4 h-4 text-[#FF9D50]" />
               <span>کمیسیون امور مالیاتی نظام پزشکی استان ایلام</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-[#17365D]">
+            <h2 className="text-2xl sm:text-3xl font-bold text-brand-dark tracking-tight">
               راهنمای جامع مالیات بر درآمد پزشکان و صاحبان مطب
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
+            <p className="text-sm text-brand-muted max-w-2xl leading-relaxed">
               راهنمای قوانین تبصره ماده ۱۰۰، پایانه‌های فروشگاهی متصل، گواهی ماده ۱۸۶ و پاسخ به
-              ابهامات مالیاتی جامعه پزشکی استان ایلام
+              ابهامات مالیاتی جامعه پزشکی استان ایلام.
             </p>
           </div>
 
@@ -38,7 +38,7 @@ export const TaxAffairsView: React.FC = () => {
             href="https://my.tax.gov.ir"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-xs bg-[#2463A6] text-white hover:bg-[#17365D] font-bold px-4 py-2.5 rounded-lg transition-colors shrink-0"
+            className="inline-flex items-center justify-center gap-2 text-xs bg-[#FF9D50] hover:bg-[#e0843a] text-white font-bold px-5 py-3 rounded-xl transition-all shadow-xs shrink-0"
           >
             <span>ورود به درگاه مایتکس (my.tax.gov.ir)</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -47,13 +47,13 @@ export const TaxAffairsView: React.FC = () => {
       </div>
 
       {/* Institutional Legal Disclaimer */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 flex items-start gap-2.5">
-        <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-        <p className="leading-relaxed">
-          <strong>سلب مسئولیت صنفی:</strong> اطلاعات مندرج در این صفحه صرفاً جهت راهنمایی کلی و
+      <div className="bg-[#FFF9D8]/70 border border-[#FF9D50]/30 rounded-2xl p-5 text-xs text-brand-dark flex items-start gap-3">
+        <AlertCircle className="w-4 h-4 text-[#FF9D50] shrink-0 mt-0.5" />
+        <p className="leading-relaxed text-brand-muted">
+          <strong className="text-brand-dark">سلب مسئولیت صنفی:</strong> اطلاعات مندرج در این صفحه صرفاً جهت راهنمایی کلی و
           اطلاع‌رسانی عمومی از قوانین جاری است و جایگزین مشاوره تخصصی حقوقی یا مالیاتی برای
           پرونده‌های خاص نمی‌باشد. اعضای محترم می‌توانند جهت پرونده‌های اختلافی با مشاور مالیاتی
-          سازمان (داخلی ۱۰۸) تعیین وقت فرمایند.
+          سازمان (داخلی <span className="tabular-nums">۱۰۸</span>) تعیین وقت فرمایند.
         </p>
       </div>
 
@@ -62,31 +62,31 @@ export const TaxAffairsView: React.FC = () => {
         {TAX_TOPICS.map((top) => (
           <div
             key={top.id}
-            className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs flex flex-col justify-between"
+            className="bg-white border border-brand-border hover:border-[#FF9D50]/50 rounded-2xl p-6 transition-all flex flex-col justify-between group"
           >
-            <div>
-              <span className="text-[11px] font-semibold text-[#2463A6] bg-[#EFF6FC] px-2.5 py-0.5 rounded">
+            <div className="space-y-3">
+              <span className="text-xs font-semibold text-brand-muted">
                 قوانین و تکالیف
               </span>
-              <h3 className="text-base font-bold text-[#17365D] mt-2 mb-2 leading-snug">
+              <h3 className="text-base sm:text-lg font-bold text-brand-dark group-hover:text-[#FF9D50] transition-colors leading-snug">
                 {top.title}
               </h3>
-              <p className="text-xs text-slate-600 leading-relaxed mb-3">
+              <p className="text-xs text-brand-muted leading-relaxed">
                 {top.summary}
               </p>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg">
-              <p className="whitespace-pre-line text-[11px]">{top.content}</p>
+            <div className="pt-4 border-t border-brand-border mt-4 text-xs text-brand-dark leading-relaxed bg-[#F7F8F7] p-4 rounded-xl border border-brand-border">
+              <p className="whitespace-pre-line text-xs">{top.content}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Annual Tax Calendar */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs space-y-4">
-        <h3 className="text-base font-bold text-[#17365D] flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-[#2463A6]" />
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8 space-y-5">
+        <h3 className="text-lg font-bold text-brand-dark flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-[#FF9D50]" />
           <span>تقویم مواعد مهم مالیاتی جامعه پزشکی در طول سال</span>
         </h3>
 
@@ -94,25 +94,25 @@ export const TaxAffairsView: React.FC = () => {
           {TAX_CALENDAR.map((cal, idx) => (
             <div
               key={idx}
-              className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-1.5"
+              className="bg-[#F7F8F7] border border-brand-border rounded-xl p-5 text-xs space-y-2"
             >
               <div className="flex items-center justify-between">
-                <span className="font-bold text-[#2463A6]">{cal.month}</span>
-                <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                <span className="font-bold text-[#FF9D50] text-sm">{cal.month}</span>
+                <span className="text-[11px] text-brand-muted font-medium">
                   {cal.status}
                 </span>
               </div>
-              <h4 className="font-bold text-slate-900">{cal.title}</h4>
-              <p className="text-slate-600 leading-relaxed">{cal.description}</p>
+              <h4 className="font-bold text-brand-dark text-sm">{cal.title}</h4>
+              <p className="text-brand-muted leading-relaxed">{cal.description}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* FAQs Accordion */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-xs space-y-4">
-        <h3 className="text-base font-bold text-[#17365D] flex items-center gap-2">
-          <HelpCircle className="w-5 h-5 text-[#2463A6]" />
+      <div className="bg-white border border-brand-border rounded-2xl p-6 sm:p-8 space-y-5">
+        <h3 className="text-lg font-bold text-brand-dark flex items-center gap-2">
+          <HelpCircle className="w-5 h-5 text-[#1DCED8]" />
           <span>پرسش‌های متداول مالیاتی پزشکان و دندانپزشکان</span>
         </h3>
 
@@ -120,22 +120,22 @@ export const TaxAffairsView: React.FC = () => {
           {TAX_FAQS.map((faq, idx) => (
             <div
               key={idx}
-              className="border border-slate-200 rounded-xl overflow-hidden text-xs"
+              className="border border-brand-border rounded-xl overflow-hidden text-xs transition-colors"
             >
               <button
                 onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full text-right p-4 bg-slate-50 hover:bg-slate-100 font-bold text-[#17365D] flex items-center justify-between transition-colors"
+                className="w-full text-right p-4 sm:p-5 bg-[#F7F8F7] hover:bg-slate-200/50 font-bold text-brand-dark flex items-center justify-between transition-colors"
               >
                 <span>{faq.q}</span>
                 {openFaq === idx ? (
-                  <ChevronUp className="w-4 h-4 text-slate-500" />
+                  <ChevronUp className="w-4 h-4 text-brand-muted shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                  <ChevronDown className="w-4 h-4 text-brand-muted shrink-0" />
                 )}
               </button>
 
               {openFaq === idx && (
-                <div className="p-4 bg-white text-slate-700 leading-relaxed border-t border-slate-200">
+                <div className="p-4 sm:p-5 bg-white text-brand-dark leading-relaxed border-t border-brand-border text-xs">
                   {faq.a}
                 </div>
               )}

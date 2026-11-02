@@ -68,36 +68,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="w-full space-y-10 sm:space-y-12">
-      {/* A. Institutional Introduction & Welcome Section (Compact & dignified, not an oversized marketing hero) */}
-      <section className="bg-gradient-to-l from-[#17365D] to-[#2463A6] text-white rounded-2xl p-6 sm:p-8 shadow-sm">
-        <div className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 text-xs font-medium bg-white/10 text-slate-100 px-3 py-1 rounded-full mb-3 border border-white/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>پورتال رسمی خدمات دولت الکترونیک</span>
-            <span className="text-white/40">|</span>
-            <span>استان ایلام</span>
+      {/* A. Institutional Introduction & Welcome Section (Minimal & sleek hero) */}
+      <section className="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-7 shadow-2xs relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1.5 h-full bg-[#2463A6]"></div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2.5 max-w-2xl">
+            <div className="inline-flex items-center gap-2 text-[11px] font-semibold text-[#2463A6] bg-[#EFF6FC] px-2.5 py-1 rounded-md border border-[#2463A6]/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2463A6]"></span>
+              <span>پورتال خدمات الکترونیک سازمان نظام پزشکی استان ایلام</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#17365D] tracking-tight">
+              سامانه جامع خدمات اعضا و استعلام پروانه پزشکی
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              مرجع رسمی صدور و تمدید پروانه مطب، استعلام اصالت اعضا، برنامه‌های بازآموزی CME و خدمات دیجیتال جامعه پزشکی استان ایلام.
+            </p>
           </div>
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight leading-snug mb-3">
-            پورتال رسمی سازمان نظام پزشکی استان ایلام
-          </h2>
-          <p className="text-sm sm:text-base text-slate-200 leading-relaxed max-w-3xl">
-            مرجع رسمی ساماندهی و صدور پروانه‌های حرفه‌ای جامعه پزشکی، دندانپزشکی، داروسازی، مامایی
-            و پیراپزشکی استان ایلام. دسترسی مستقیم به خدمات الکترونیک، استعلام پروانه مطب، آموزش
-            مداوم و نیازمندی‌های درمانی.
-          </p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-slate-200">
-            <div className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-lg border border-white/10">
-              <Building className="w-4 h-4 text-emerald-300" />
-              <span>پوشش کلیه ۱۲ شهرستان تابعه استان</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-lg border border-white/10">
-              <CheckCircle2 className="w-4 h-4 text-sky-300" />
-              <span>سامانه استعلام اصالت پروانه پزشکان</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-black/20 px-3 py-1.5 rounded-lg border border-white/10">
-              <Clock className="w-4 h-4 text-amber-300" />
-              <span>دبیرخانه فعال در روزهای کاری هفته</span>
+          <div className="flex items-center gap-4 text-xs shrink-0 border-t md:border-t-0 md:border-r border-slate-100 pt-4 md:pt-0 md:pr-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 text-slate-700 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-[#24845B]" />
+                <span>استعلام آنلاین اصالت پروانه</span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-700 font-medium">
+                <Building className="w-4 h-4 text-[#2463A6]" />
+                <span>پوشش کلیه شهرستان‌های استان</span>
+              </div>
             </div>
           </div>
         </div>
