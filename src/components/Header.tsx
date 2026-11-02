@@ -50,18 +50,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onSelectTab, onSearc
 
   return (
     <header className="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-40">
-      {/* 1. Top Institutional Utility Bar */}
-      <div className="bg-[#17365D] text-white text-xs py-2 px-4 sm:px-8 border-b border-[#2463A6]/40">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
-          {/* Right side (Persian start): Official identity & Date */}
-          <div className="flex items-center gap-4 flex-wrap justify-center md:justify-start">
-            <span className="font-medium text-slate-200">
-              پورتال رسمی سازمان نظام پزشکی جمهوری اسلامی ایران
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* 2. Main Identity & Search Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
         {/* Organization Branding */}

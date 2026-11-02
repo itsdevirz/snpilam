@@ -82,6 +82,9 @@ export const AdminView: React.FC = () => {
     addPhysician,
     updatePhysician,
     deletePhysician,
+    approvePhysician,
+    rejectPhysician,
+    requestPhysicianRegistration,
     addAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
@@ -91,6 +94,9 @@ export const AdminView: React.FC = () => {
     addFacility,
     updateFacility,
     deleteFacility,
+    approveFacility,
+    rejectFacility,
+    requestFacilityRegistration,
     addClassified,
     updateClassifiedStatus,
     deleteClassified,
@@ -106,7 +112,6 @@ export const AdminView: React.FC = () => {
     updateMessageStatus,
     deleteMessage,
     resetAllData,
-    syncAllDataToMysql,
     changeAdminPassword,
   } = useDataContext();
 
@@ -239,9 +244,9 @@ export const AdminView: React.FC = () => {
   };
 
   // Handle Login
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = loginAdmin(loginPassword);
+    const ok = await loginAdmin(loginPassword);
     if (!ok) {
       setLoginError('کلمه عبور واردشده صحیح نمی‌باشد.');
     } else {
@@ -250,7 +255,7 @@ export const AdminView: React.FC = () => {
     }
   };
 
-  const handleChangePasswordSubmit = (e: React.FormEvent) => {
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwdStatus(null);
 
@@ -264,7 +269,7 @@ export const AdminView: React.FC = () => {
       return;
     }
 
-    const res = changeAdminPassword(pwdCurrent, pwdNew);
+    const res = await changeAdminPassword(pwdCurrent, pwdNew);
     if (res.success) {
       setPwdStatus({ type: 'success', text: res.message });
       setPwdCurrent('');
@@ -677,6 +682,7 @@ export const AdminView: React.FC = () => {
                   <th className="p-3">شهرستان</th>
                   <th className="p-3">تلفن مطب</th>
                   <th className="p-3">وضعیت پروانه</th>
+                  <th className="p-3">وضعیت انتشار</th>
                   <th className="p-3 text-center">عملیات</th>
                 </tr>
               </thead>
@@ -709,6 +715,36 @@ export const AdminView: React.FC = () => {
                         >
                           {phy.licenseStatus}
                         </span>
+                      </td>
+                      <td className="p-3">
+                        {phy.status === 'pending' ? (
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => approvePhysician(phy.id)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-0.5"
+                              title="تایید و انتشار در سایت"
+                            >
+                              <Check className="w-3 h-3" />
+                              <span>تایید</span>
+                            </button>
+                            <button
+                              onClick={() => rejectPhysician(phy.id)}
+                              className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-0.5"
+                              title="رد درخواست"
+                            >
+                              <X className="w-3 h-3" />
+                              <span>رد</span>
+                            </button>
+                          </div>
+                        ) : phy.status === 'rejected' ? (
+                          <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold">
+                            رد شده
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">
+                            منتشر شده
+                          </span>
+                        )}
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-1.5">
@@ -1183,32 +1219,64 @@ export const AdminView: React.FC = () => {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-bold text-[#2463A6] bg-[#EFF6FC] px-2 py-0.5 rounded">{fac.type}</span>
-                    <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">{fac.licenseStatus}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">{fac.licenseStatus}</span>
+                      {fac.status === 'pending' ? (
+                        <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">در انتظار تایید</span>
+                      ) : fac.status === 'rejected' ? (
+                        <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold">رد شده</span>
+                      ) : null}
+                    </div>
                   </div>
                   <h4 className="font-bold text-[#17365D] text-sm">{fac.name}</h4>
                   <p className="text-slate-600 mt-1">مدیریت: {fac.manager} | مسئول فنی: {fac.technicalSupervisor}</p>
                   <p className="text-slate-500 mt-1">نشانی: {fac.address} (تلفن: {fac.phone})</p>
                 </div>
 
-                <div className="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
-                  <button
-                    onClick={() => setFacilityModal({ open: true, item: fac })}
-                    className="p-1.5 bg-white border border-slate-200 rounded hover:bg-slate-100 text-slate-700"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setDeleteConfirmModal({
-                        open: true,
-                        title: `حذف مرکز «${fac.name}»`,
-                        onConfirm: () => deleteFacility(fac.id),
-                      })
-                    }
-                    className="p-1.5 rounded hover:bg-red-100 text-red-500"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
+                  <div>
+                    {fac.status === 'pending' && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => approveFacility(fac.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>تایید و انتشار</span>
+                        </button>
+                        <button
+                          onClick={() => rejectFacility(fac.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white text-[10px] font-bold px-2.5 py-1 rounded flex items-center gap-1"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                          <span>رد</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => setFacilityModal({ open: true, item: fac })}
+                      className="p-1.5 bg-white border border-slate-200 rounded hover:bg-slate-100 text-slate-700"
+                      title="ویرایش"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirmModal({
+                          open: true,
+                          title: `حذف مرکز «${fac.name}»`,
+                          onConfirm: () => deleteFacility(fac.id),
+                        })
+                      }
+                      className="p-1.5 rounded hover:bg-red-100 text-red-500"
+                      title="حذف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -15,6 +15,9 @@ import {
   UserCheck,
   Calendar,
   Building,
+  Plus,
+  Send,
+  AlertCircle,
 } from 'lucide-react';
 
 interface PhysiciansViewProps {
@@ -26,12 +29,16 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
   initialSearchQuery = '',
   initialSpecialty = '',
 }) => {
-  const { physicians } = useDataContext();
+  const { physicians, requestPhysicianRegistration } = useDataContext();
   const [searchTerm, setSearchTerm] = useState(initialSearchQuery);
   const [selectedSpecialtyGroup, setSelectedSpecialtyGroup] = useState(initialSpecialty);
   const [selectedCounty, setSelectedCounty] = useState('');
   const [selectedLicenseStatus, setSelectedLicenseStatus] = useState('');
   const [selectedPhysician, setSelectedPhysician] = useState<Physician | null>(null);
+
+  // Self Registration Modal
+  const [showRegModal, setShowRegModal] = useState(false);
+  const [regSuccessMsg, setRegSuccessMsg] = useState('');
 
   const specialtyGroups = [
     'همه گروه‌ها',
@@ -51,9 +58,14 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
 
   const counties = ['همه شهرستان‌ها', ...COUNCIL_INFO.jurisdictionCounties];
 
+  // Filter only approved physicians for public display
+  const approvedPhysicians = useMemo(() => {
+    return physicians.filter((p) => !p.status || p.status === 'approved');
+  }, [physicians]);
+
   // Filtering logic
   const filteredPhysicians = useMemo(() => {
-    return physicians.filter((p) => {
+    return approvedPhysicians.filter((p) => {
       const matchSearch =
         !searchTerm.trim() ||
         p.name.includes(searchTerm) ||
@@ -78,7 +90,7 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
 
       return matchSearch && matchSpecialty && matchCounty && matchStatus;
     });
-  }, [searchTerm, selectedSpecialtyGroup, selectedCounty, selectedLicenseStatus]);
+  }, [approvedPhysicians, searchTerm, selectedSpecialtyGroup, selectedCounty, selectedLicenseStatus]);
 
   const handleResetFilters = () => {
     setSearchTerm('');
@@ -106,11 +118,21 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
             </p>
           </div>
 
-          <div className="text-left bg-[#EAF6EE] border border-[#24845B]/30 rounded-xl p-3 text-xs">
-            <span className="text-[#24845B] font-bold block">مجموع شاغلین ثبت‌شده:</span>
-            <span className="text-slate-700 font-sans text-sm font-bold">
-              {physicians.length} عضو ثبت‌شده فعال
-            </span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <button
+              onClick={() => setShowRegModal(true)}
+              className="bg-[#24845B] hover:bg-[#1b6746] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 shadow-xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>درخواست ثبت و عضویت پزشک</span>
+            </button>
+
+            <div className="text-left bg-[#EAF6EE] border border-[#24845B]/30 rounded-xl p-3 text-xs">
+              <span className="text-[#24845B] font-bold block">شاغلین تاییدشده:</span>
+              <span className="text-slate-700 font-sans text-sm font-bold">
+                {approvedPhysicians.length} عضو فعال
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -408,6 +430,294 @@ export const PhysiciansView: React.FC<PhysiciansViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Public Self-Registration Modal */}
+      {showRegModal && (
+        <PhysicianRegistrationModal
+          onClose={() => {
+            setShowRegModal(false);
+            setRegSuccessMsg('');
+          }}
+          onSubmit={(data) => {
+            requestPhysicianRegistration(data);
+            setRegSuccessMsg(
+              'درخواست عضویت و ثبت اطلاعات شما با موفقیت در سامانه ثبت گردید. پس از بررسی صلاحیت حرفه‌ای و تایید توسط هیئت مدیره نظام پزشکی ایلام، پروانه شما در بانک اطلاعات عمومی منتشر خواهد شد.'
+            );
+          }}
+          successMsg={regSuccessMsg}
+        />
+      )}
+    </div>
+  );
+};
+
+// ==========================================
+// PHYSICIAN SELF-REGISTRATION MODAL
+// ==========================================
+const PhysicianRegistrationModal: React.FC<{
+  onClose: () => void;
+  onSubmit: (data: Omit<Physician, 'id'>) => void;
+  successMsg: string;
+}> = ({ onClose, onSubmit, successMsg }) => {
+  const [form, setForm] = useState({
+    name: '',
+    medicalRegNo: '',
+    specialtyGroup: 'پزشک عمومی' as const,
+    specialty: '',
+    subSpecialty: '',
+    county: 'ایلام',
+    city: 'ایلام',
+    clinicName: '',
+    address: '',
+    phone: '',
+    licenseStatus: 'دارای پروانه مطب معتبر' as const,
+    consultationDays: 'شنبه تا چهارشنبه',
+    consultationHours: '۱۶:۰۰ الی ۲۰:۰۰',
+    servicesStr: 'معاینات پزشکی, مشاوره درمانی',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const services = form.servicesStr.split(',').map((s) => s.trim()).filter(Boolean);
+    onSubmit({
+      name: form.name,
+      medicalRegNo: form.medicalRegNo,
+      specialtyGroup: form.specialtyGroup,
+      specialty: form.specialty,
+      subSpecialty: form.subSpecialty,
+      county: form.county,
+      city: form.city,
+      clinicName: form.clinicName,
+      address: form.address,
+      phone: form.phone,
+      licenseStatus: form.licenseStatus,
+      consultationDays: form.consultationDays,
+      consultationHours: form.consultationHours,
+      services,
+      status: 'pending',
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 text-xs max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+          <div className="flex items-center gap-2 text-[#24845B]">
+            <UserCheck className="w-5 h-5" />
+            <h3 className="font-bold text-sm text-[#17365D]">
+              فرم خودکار ثبت‌نام و درخواست پروانه پزشکان استان ایلام
+            </h3>
+          </div>
+          <button onClick={onClose} className="p-1 rounded text-slate-400 hover:text-slate-700">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {successMsg ? (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 p-5 rounded-xl space-y-3 text-center">
+            <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+            <h4 className="font-bold text-sm">درخواست شما ثبـت گردید</h4>
+            <p className="text-xs leading-relaxed">{successMsg}</p>
+            <button
+              onClick={onClose}
+              className="bg-[#24845B] text-white font-bold px-5 py-2 rounded-lg text-xs hover:bg-[#1b6746]"
+            >
+              متوجه شدم و بستن
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="bg-amber-50 border border-amber-200 text-amber-900 p-3 rounded-lg text-[11px] flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+              <span>
+                توجه: اطلاعات ثبت‌شده پس از بررسی و تایید هیئت مدیره نظام پزشکی استان ایلام در بانک جستجوی عمومی منتشر خواهد شد.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium mb-1">نام و نام خانوادگی *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="مثال: دکتر علیرضا امیری"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">شماره نظام پزشکی *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.medicalRegNo}
+                  onChange={(e) => setForm({ ...form, medicalRegNo: e.target.value })}
+                  placeholder="مثال: ۴۹۸۱۲"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium mb-1">رسته/گروه تخصصی *</label>
+                <select
+                  value={form.specialtyGroup}
+                  onChange={(e) => setForm({ ...form, specialtyGroup: e.target.value as any })}
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                >
+                  <option value="پزشک عمومی">پزشک عمومی</option>
+                  <option value="متخصص داخلی">متخصص داخلی</option>
+                  <option value="جراحی">جراحی</option>
+                  <option value="قلب و عروق">قلب و عروق</option>
+                  <option value="زنان و زایمان">زنان و زایمان</option>
+                  <option value="کودکان">کودکان</option>
+                  <option value="دندانپزشکی">دندانپزشکی</option>
+                  <option value="داروسازی">داروسازی</option>
+                  <option value="ارتوپدی">ارتوپدی</option>
+                  <option value="چشم‌پزشکی">چشم‌پزشکی</option>
+                  <option value="روانپزشکی">روانپزشکی</option>
+                  <option value="مأمایی و پیراپزشکی">مأمایی و پیراپزشکی</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">عنوان تخصص دقیق *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.specialty}
+                  onChange={(e) => setForm({ ...form, specialty: e.target.value })}
+                  placeholder="مثال: متخصص بیماری‌های قلب و عروق"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium mb-1">فوق تخصص / فلوشیپ (اختیاری)</label>
+                <input
+                  type="text"
+                  value={form.subSpecialty}
+                  onChange={(e) => setForm({ ...form, subSpecialty: e.target.value })}
+                  placeholder="مثال: فلوشیپ آنژیوپلاستی"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">شهرستان فعالیت *</label>
+                <select
+                  value={form.county}
+                  onChange={(e) => setForm({ ...form, county: e.target.value, city: e.target.value })}
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                >
+                  {COUNCIL_INFO.jurisdictionCounties.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium mb-1">نام مطب / کلینیک *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.clinicName}
+                  onChange={(e) => setForm({ ...form, clinicName: e.target.value })}
+                  placeholder="مثال: مطب دکتر امیری"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">تلفن تماس مطب *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="مثال: ۰۸۴۳۳۳۴۰۰۰۰"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">نشانی دقیق مطب *</label>
+              <textarea
+                required
+                rows={2}
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="ایلام، خیابان سعدی، ساختمان پزشکان..."
+                className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium mb-1">روزهای ویزیت *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.consultationDays}
+                  onChange={(e) => setForm({ ...form, consultationDays: e.target.value })}
+                  placeholder="شنبه تا چهارشنبه"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+
+              <div>
+                <label className="block font-medium mb-1">ساعات ویزیت *</label>
+                <input
+                  type="text"
+                  required
+                  value={form.consultationHours}
+                  onChange={(e) => setForm({ ...form, consultationHours: e.target.value })}
+                  placeholder="۱۶:۰۰ الی ۲۰:۰۰"
+                  className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block font-medium mb-1">خدمات درمانی (با کاما جدا کنید)</label>
+              <input
+                type="text"
+                value={form.servicesStr}
+                onChange={(e) => setForm({ ...form, servicesStr: e.target.value })}
+                placeholder="معاینات، مشاوره، اکوکاردیوگرافی"
+                className="w-full bg-[#F5F7FA] border border-slate-200 rounded-lg p-2"
+              />
+            </div>
+
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100"
+              >
+                انصراف
+              </button>
+              <button
+                type="submit"
+                className="bg-[#24845B] hover:bg-[#1b6746] text-white font-bold px-5 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+              >
+                <Send className="w-4 h-4" />
+                <span>ارسال درخواست جهت بررسی و تایید</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 };

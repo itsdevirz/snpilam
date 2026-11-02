@@ -518,26 +518,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         )}
       </section>
 
-      {/* K. Seasonal / Commemorative Banner (Dignified & restrained institutional message) */}
-      <section className="bg-gradient-to-r from-[#17365D] to-[#2463A6] text-white rounded-xl p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="space-y-1 text-center md:text-right">
-          <span className="text-xs font-semibold text-emerald-300">
-            سوگندنامه بقراط و منشور حقوق بیمار
-          </span>
-          <h4 className="text-base sm:text-lg font-bold">
-            «سوگند یاد می‌کنم که تمام توان و تدبیر خود را در جهت بهبود بیماران به کار گیرم»
-          </h4>
-          <p className="text-xs text-slate-200">
-            سازمان نظام پزشکی استان ایلام؛ مدافع سلامت جامعه، اخلاق پزشکی و حقوق صنفی درمانگران
-          </p>
-        </div>
-        <button
-          onClick={() => onSelectTab('about')}
-          className="shrink-0 bg-white text-[#17365D] hover:bg-slate-100 text-xs font-bold px-4 py-2.5 rounded-lg transition-colors whitespace-nowrap"
-        >
-          آشنایی با تاریخچه و اهداف سازمان
-        </button>
-      </section>
+
 
       {/* I. National Systems & Verified Links */}
       <section className="w-full">

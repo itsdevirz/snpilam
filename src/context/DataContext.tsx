@@ -24,6 +24,18 @@ import { REGULATIONS_DATA as defaultRegulations } from '../data/regulationsData'
 const defaultMessages: ContactMessage[] = [];
 const defaultLogs: ActivityLog[] = [];
 
+// SHA-256 hashing helper
+async function sha256Hex(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Default "Aa@123456" SHA-256 hash
+const DEFAULT_ADMIN_HASH = '8c084fbe711b7d5f0e137bc67a7522ff61d9a2444c2049d562423306db7ef755';
+
 interface DataContextType {
   announcements: Announcement[];
   newsItems: NewsItem[];
@@ -37,13 +49,24 @@ interface DataContextType {
   logs: ActivityLog[];
   isAdminLoggedIn: boolean;
 
-  loginAdmin: (password: string) => boolean;
+  loginAdmin: (password: string) => Promise<boolean>;
   logoutAdmin: () => void;
 
-  // Physician CRUD
+  // Physician CRUD & Approval
   addPhysician: (phy: Omit<Physician, 'id'>) => void;
+  requestPhysicianRegistration: (phy: Omit<Physician, 'id' | 'status'>) => void;
+  approvePhysician: (id: string) => void;
+  rejectPhysician: (id: string) => void;
   updatePhysician: (phy: Physician) => void;
   deletePhysician: (id: string) => void;
+
+  // Facility CRUD & Approval
+  addFacility: (fac: Omit<Facility, 'id'>) => void;
+  requestFacilityRegistration: (fac: Omit<Facility, 'id' | 'status'>) => void;
+  approveFacility: (id: string) => void;
+  rejectFacility: (id: string) => void;
+  updateFacility: (fac: Facility) => void;
+  deleteFacility: (id: string) => void;
 
   // Announcement CRUD
   addAnnouncement: (ann: Omit<Announcement, 'id'>) => void;
@@ -54,11 +77,6 @@ interface DataContextType {
   addNews: (news: Omit<NewsItem, 'id'>) => void;
   updateNews: (news: NewsItem) => void;
   deleteNews: (id: string) => void;
-
-  // Facility CRUD
-  addFacility: (fac: Omit<Facility, 'id'>) => void;
-  updateFacility: (fac: Facility) => void;
-  deleteFacility: (id: string) => void;
 
   // Classified CRUD
   addClassified: (cls: Omit<ClassifiedItem, 'id' | 'status'>) => void;
@@ -87,15 +105,14 @@ interface DataContextType {
 
   // System
   resetAllData: () => void;
-  syncAllDataToMysql: () => Promise<{ success: boolean; message: string }>;
-  changeAdminPassword: (currentPass: string, newPass: string) => { success: boolean; message: string };
+  changeAdminPassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Purge old mock data from localStorage if not already purged
-  if (typeof window !== 'undefined' && localStorage.getItem('ilam_v4_purged') !== 'true') {
+  // Purge legacy local storage items to ensure no database entities are cached in localStorage
+  if (typeof window !== 'undefined' && localStorage.getItem('ilam_purged_v5') !== 'true') {
     localStorage.removeItem('ilam_announcements');
     localStorage.removeItem('ilam_news');
     localStorage.removeItem('ilam_services');
@@ -106,75 +123,39 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('ilam_regulations');
     localStorage.removeItem('ilam_messages');
     localStorage.removeItem('ilam_logs');
-    localStorage.setItem('ilam_v4_purged', 'true');
+    localStorage.removeItem('ilam_admin_password');
+    localStorage.setItem('ilam_purged_v5', 'true');
   }
 
-  const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
-    const saved = localStorage.getItem('ilam_announcements');
-    return saved ? JSON.parse(saved) : defaultAnnouncements;
-  });
+  // Pure memory states (Initialized with default empty/initial templates, updated directly from MySQL)
+  const [announcements, setAnnouncements] = useState<Announcement[]>(defaultAnnouncements);
+  const [newsItems, setNewsItems] = useState<NewsItem[]>(defaultNews);
+  const [services, setServices] = useState<ServiceItem[]>(defaultServices);
+  const [physicians, setPhysicians] = useState<Physician[]>(defaultPhysicians);
+  const [facilities, setFacilities] = useState<Facility[]>(defaultFacilities);
+  const [classifieds, setClassifieds] = useState<ClassifiedItem[]>(defaultClassifieds);
+  const [educationEvents, setEducationEvents] = useState<EducationalEvent[]>(defaultEducation);
+  const [regulations, setRegulations] = useState<RegulationDoc[]>(defaultRegulations);
+  const [messages, setMessages] = useState<ContactMessage[]>(defaultMessages);
+  const [logs, setLogs] = useState<ActivityLog[]>(defaultLogs);
 
-  const [newsItems, setNewsItems] = useState<NewsItem[]>(() => {
-    const saved = localStorage.getItem('ilam_news');
-    return saved ? JSON.parse(saved) : defaultNews;
-  });
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
+  const [adminPasswordHash, setAdminPasswordHash] = useState<string>(DEFAULT_ADMIN_HASH);
 
-  const [services, setServices] = useState<ServiceItem[]>(() => {
-    const saved = localStorage.getItem('ilam_services');
-    return saved ? JSON.parse(saved) : defaultServices;
-  });
-
-  const [physicians, setPhysicians] = useState<Physician[]>(() => {
-    const saved = localStorage.getItem('ilam_physicians');
-    return saved ? JSON.parse(saved) : defaultPhysicians;
-  });
-
-  const [facilities, setFacilities] = useState<Facility[]>(() => {
-    const saved = localStorage.getItem('ilam_facilities');
-    return saved ? JSON.parse(saved) : defaultFacilities;
-  });
-
-  const [classifieds, setClassifieds] = useState<ClassifiedItem[]>(() => {
-    const saved = localStorage.getItem('ilam_classifieds');
-    return saved ? JSON.parse(saved) : defaultClassifieds;
-  });
-
-  const [educationEvents, setEducationEvents] = useState<EducationalEvent[]>(() => {
-    const saved = localStorage.getItem('ilam_education');
-    return saved ? JSON.parse(saved) : defaultEducation;
-  });
-
-  const [regulations, setRegulations] = useState<RegulationDoc[]>(() => {
-    const saved = localStorage.getItem('ilam_regulations');
-    return saved ? JSON.parse(saved) : defaultRegulations;
-  });
-
-  const [messages, setMessages] = useState<ContactMessage[]>(() => {
-    const saved = localStorage.getItem('ilam_messages');
-    return saved ? JSON.parse(saved) : defaultMessages;
-  });
-
-  const [logs, setLogs] = useState<ActivityLog[]>(() => {
-    const saved = localStorage.getItem('ilam_logs');
-    return saved ? JSON.parse(saved) : defaultLogs;
-  });
-
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('ilam_admin_session') === 'true';
-  });
-
-  const DEFAULT_ADMIN_PASSWORD = 'Aa@123456';
-
-  const [adminPassword, setAdminPassword] = useState<string>(() => {
-    return localStorage.getItem('ilam_admin_password') || DEFAULT_ADMIN_PASSWORD;
-  });
-
-  // MySQL Persistence API Helper functions (fast async calls)
+  // MySQL REST API calls (Direct server persistence)
   const apiSaveItem = (table: string, item: any) => {
     fetch('/api/data.php?action=save_item', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ table, item }),
+    }).catch(() => {});
+  };
+
+  const apiApproveItem = (table: string, id: string, status: 'approved' | 'rejected') => {
+    fetch('/api/data.php?action=approve_item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table, id, status }),
     }).catch(() => {});
   };
 
@@ -186,15 +167,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }).catch(() => {});
   };
 
-  const apiSaveSetting = (key: string, value: string) => {
-    fetch('/api/data.php?action=save_setting', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key, value }),
-    }).catch(() => {});
-  };
-
-  // Initial Data Load from MySQL database when page opens
+  // Initial Data Fetch from PHP MySQL API on mount
   useEffect(() => {
     let isMounted = true;
     const loadFromMysql = async () => {
@@ -216,69 +189,20 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               if (Array.isArray(d.services)) setServices(d.services);
               if (Array.isArray(d.messages)) setMessages(d.messages);
               if (Array.isArray(d.logs)) setLogs(d.logs);
-              if (d.settings && d.settings.admin_password) {
-                setAdminPassword(d.settings.admin_password);
+              if (d.settings && d.settings.admin_password_hash) {
+                setAdminPasswordHash(d.settings.admin_password_hash);
               }
             }
           }
         }
       } catch (err) {
-        // Fallback to local storage state if PHP server is not active
+        // Fallback gracefully
       }
     };
 
     loadFromMysql();
     return () => { isMounted = false; };
   }, []);
-
-  // Sync state to local storage
-  useEffect(() => {
-    localStorage.setItem('ilam_announcements', JSON.stringify(announcements));
-  }, [announcements]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_news', JSON.stringify(newsItems));
-  }, [newsItems]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_services', JSON.stringify(services));
-  }, [services]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_physicians', JSON.stringify(physicians));
-  }, [physicians]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_facilities', JSON.stringify(facilities));
-  }, [facilities]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_classifieds', JSON.stringify(classifieds));
-  }, [classifieds]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_education', JSON.stringify(educationEvents));
-  }, [educationEvents]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_regulations', JSON.stringify(regulations));
-  }, [regulations]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_messages', JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_logs', JSON.stringify(logs));
-  }, [logs]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_admin_session', isAdminLoggedIn ? 'true' : 'false');
-  }, [isAdminLoggedIn]);
-
-  useEffect(() => {
-    localStorage.setItem('ilam_admin_password', adminPassword);
-  }, [adminPassword]);
 
   const addLog = (action: string, target: string, type: ActivityLog['type']) => {
     const now = new Date();
@@ -295,19 +219,37 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     apiSaveItem('logs', newLog);
   };
 
-  const loginAdmin = (password: string) => {
-    if (password === adminPassword) {
+  const loginAdmin = async (password: string): Promise<boolean> => {
+    const passwordHash = await sha256Hex(password);
+    try {
+      const res = await fetch('/api/auth.php?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password_hash: passwordHash }),
+      });
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setIsAdminLoggedIn(true);
+          addLog('ورود به پنل مدیریت', 'احراز هویت هش با موفقیت انجام شد', 'status');
+          return true;
+        }
+      }
+    } catch (e) {}
+
+    // Fallback hash check
+    if (passwordHash === adminPasswordHash) {
       setIsAdminLoggedIn(true);
-      addLog('ورود به پنل مدیریت', 'نشست مدیریتی با موفقیت فعال شد', 'status');
+      addLog('ورود به پنل مدیریت', 'نشست فعال گردید', 'status');
       return true;
     }
     return false;
   };
 
-  const changeAdminPassword = (currentPass: string, newPass: string) => {
-    if (currentPass !== adminPassword) {
-      return { success: false, message: 'کلمه عبور فعلی واردشده نادرست می‌باشد.' };
-    }
+  const changeAdminPassword = async (currentPass: string, newPass: string) => {
+    const currentHash = await sha256Hex(currentPass);
+    const newHash = await sha256Hex(newPass);
 
     if (newPass.length < 8) {
       return { success: false, message: 'کلمه عبور جدید باید حداقل دارای ۸ کاراکتر باشد.' };
@@ -325,11 +267,24 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       };
     }
 
-    setAdminPassword(newPass);
-    localStorage.setItem('ilam_admin_password', newPass);
-    apiSaveSetting('admin_password', newPass);
-    addLog('تغییر کلمه عبور مدیریت', 'کلمه عبور پنل مدیریت با موفقیت تغییر یافت', 'update');
-    return { success: true, message: 'کلمه عبور پنل مدیریت با موفقیت بروزرسانی شد.' };
+    try {
+      const res = await fetch('/api/auth.php?action=change_password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ current_hash: currentHash, new_hash: newHash }),
+      });
+      const contentType = res.headers.get('content-type');
+      if (res.ok && contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (!data.success) {
+          return { success: false, message: data.error };
+        }
+      }
+    } catch (e) {}
+
+    setAdminPasswordHash(newHash);
+    addLog('تغییر کلمه عبور مدیریت', 'کلمه عبور با الگوریتم SHA-256 بروزرسانی شد', 'update');
+    return { success: true, message: 'کلمه عبور پنل مدیریت با موفقیت رمزنگاری و بروزرسانی شد.' };
   };
 
   const logoutAdmin = () => {
@@ -337,13 +292,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addLog('خروج از پنل مدیریت', 'نشست پایان یافت', 'status');
   };
 
-  // Physician CRUD
+  // Physician CRUD & Approval
   const addPhysician = (data: Omit<Physician, 'id'>) => {
     const id = `phy-${Date.now()}`;
-    const newItem = { id, ...data };
+    const newItem: Physician = { id, ...data, status: data.status || 'approved' };
     setPhysicians((prev) => [newItem, ...prev]);
     apiSaveItem('physicians', newItem);
     addLog('افزودن پزشک جدید', `${data.name} (${data.medicalRegNo})`, 'create');
+  };
+
+  const requestPhysicianRegistration = (data: Omit<Physician, 'id' | 'status'>) => {
+    const id = `phy-${Date.now()}`;
+    const newItem: Physician = { id, ...data, status: 'pending' };
+    setPhysicians((prev) => [newItem, ...prev]);
+    apiSaveItem('physicians', newItem);
+    addLog('درخواست ثبت‌نام پزشک جدید', `${data.name} (در انتظار تایید)`, 'create');
+  };
+
+  const approvePhysician = (id: string) => {
+    setPhysicians((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'approved' } : p)));
+    apiApproveItem('physicians', id, 'approved');
+    addLog('تایید پرونده پزشک', `شناسه: ${id}`, 'update');
+  };
+
+  const rejectPhysician = (id: string) => {
+    setPhysicians((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'rejected' } : p)));
+    apiApproveItem('physicians', id, 'rejected');
+    addLog('رد درخواست ثبت‌نام پزشک', `شناسه: ${id}`, 'update');
   };
 
   const updatePhysician = (phy: Physician) => {
@@ -357,6 +332,48 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPhysicians((prev) => prev.filter((p) => p.id !== id));
     apiDeleteItem('physicians', id);
     addLog('حذف پرونده پزشک', target ? target.name : id, 'delete');
+  };
+
+  // Facility CRUD & Approval
+  const addFacility = (data: Omit<Facility, 'id'>) => {
+    const id = `fac-${Date.now()}`;
+    const newItem: Facility = { id, ...data, status: data.status || 'approved' };
+    setFacilities((prev) => [newItem, ...prev]);
+    apiSaveItem('facilities', newItem);
+    addLog('افزودن مرکز درمانی', data.name, 'create');
+  };
+
+  const requestFacilityRegistration = (data: Omit<Facility, 'id' | 'status'>) => {
+    const id = `fac-${Date.now()}`;
+    const newItem: Facility = { id, ...data, status: 'pending' };
+    setFacilities((prev) => [newItem, ...prev]);
+    apiSaveItem('facilities', newItem);
+    addLog('درخواست ثبت مرکز درمانی جدید', `${data.name} (در انتظار تایید)`, 'create');
+  };
+
+  const approveFacility = (id: string) => {
+    setFacilities((prev) => prev.map((f) => (f.id === id ? { ...f, status: 'approved' } : f)));
+    apiApproveItem('facilities', id, 'approved');
+    addLog('تایید مرکز درمانی', `شناسه: ${id}`, 'update');
+  };
+
+  const rejectFacility = (id: string) => {
+    setFacilities((prev) => prev.map((f) => (f.id === id ? { ...f, status: 'rejected' } : f)));
+    apiApproveItem('facilities', id, 'rejected');
+    addLog('رد مرکز درمانی', `شناسه: ${id}`, 'update');
+  };
+
+  const updateFacility = (fac: Facility) => {
+    setFacilities((prev) => prev.map((f) => (f.id === fac.id ? fac : f)));
+    apiSaveItem('facilities', fac);
+    addLog('ویرایش اطلاعات مرکز درمانی', fac.name, 'update');
+  };
+
+  const deleteFacility = (id: string) => {
+    const target = facilities.find((f) => f.id === id);
+    setFacilities((prev) => prev.filter((f) => f.id !== id));
+    apiDeleteItem('facilities', id);
+    addLog('حذف مرکز درمانی', target ? target.name : id, 'delete');
   };
 
   // Announcement CRUD
@@ -401,28 +418,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setNewsItems((prev) => prev.filter((n) => n.id !== id));
     apiDeleteItem('news', id);
     addLog('حذف خبر', target ? target.title : id, 'delete');
-  };
-
-  // Facility CRUD
-  const addFacility = (data: Omit<Facility, 'id'>) => {
-    const id = `fac-${Date.now()}`;
-    const newItem = { id, ...data };
-    setFacilities((prev) => [newItem, ...prev]);
-    apiSaveItem('facilities', newItem);
-    addLog('افزودن مرکز درمانی', data.name, 'create');
-  };
-
-  const updateFacility = (fac: Facility) => {
-    setFacilities((prev) => prev.map((f) => (f.id === fac.id ? fac : f)));
-    apiSaveItem('facilities', fac);
-    addLog('ویرایش اطلاعات مرکز درمانی', fac.name, 'update');
-  };
-
-  const deleteFacility = (id: string) => {
-    const target = facilities.find((f) => f.id === id);
-    setFacilities((prev) => prev.filter((f) => f.id !== id));
-    apiDeleteItem('facilities', id);
-    addLog('حذف مرکز درمانی', target ? target.name : id, 'delete');
   };
 
   // Classified CRUD
@@ -550,36 +545,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     addLog('حذف پیام', id, 'delete');
   };
 
-  const syncAllDataToMysql = async () => {
-    try {
-      const payload = {
-        physicians,
-        announcements,
-        news: newsItems,
-        facilities,
-        classifieds,
-        education: educationEvents,
-        regulations,
-        services,
-        messages,
-        logs,
-      };
-      const res = await fetch('/api/data.php?action=sync_all', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const contentType = res.headers.get('content-type');
-      if (res.ok && contentType && contentType.includes('application/json')) {
-        const data = await res.json();
-        return data;
-      }
-      return { success: true, message: 'همگام‌سازی کامل انجام شد.' };
-    } catch (err: any) {
-      return { success: false, message: 'خطا در همگام‌سازی داده‌ها با دیتابیس: ' + err.message };
-    }
-  };
-
   const resetAllData = () => {
     setAnnouncements(defaultAnnouncements);
     setNewsItems(defaultNews);
@@ -591,9 +556,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setRegulations(defaultRegulations);
     setMessages(defaultMessages);
     setLogs(defaultLogs);
-    localStorage.clear();
     addLog('بازنشانی داده‌ها', 'اطلاعات اولیه بازیابی شد', 'status');
-    syncAllDataToMysql();
   };
 
   return (
@@ -613,17 +576,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loginAdmin,
         logoutAdmin,
         addPhysician,
+        requestPhysicianRegistration,
+        approvePhysician,
+        rejectPhysician,
         updatePhysician,
         deletePhysician,
+        addFacility,
+        requestFacilityRegistration,
+        approveFacility,
+        rejectFacility,
+        updateFacility,
+        deleteFacility,
         addAnnouncement,
         updateAnnouncement,
         deleteAnnouncement,
         addNews,
         updateNews,
         deleteNews,
-        addFacility,
-        updateFacility,
-        deleteFacility,
         addClassified,
         updateClassifiedStatus,
         deleteClassified,
@@ -640,7 +609,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateMessageStatus,
         deleteMessage,
         resetAllData,
-        syncAllDataToMysql,
         changeAdminPassword,
       }}
     >

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS `physicians` (
   `consultationDays` TEXT,
   `consultationHours` VARCHAR(128),
   `services` TEXT,
+  `status` VARCHAR(64) DEFAULT 'approved',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS `facilities` (
   `workingHours` VARCHAR(128),
   `licenseStatus` VARCHAR(128),
   `services` TEXT,
+  `status` VARCHAR(64) DEFAULT 'approved',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

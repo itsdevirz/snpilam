@@ -97,6 +97,7 @@ export interface Physician {
   consultationDays: string;
   consultationHours: string;
   services: string[];
+  status?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface Facility {
@@ -112,6 +113,7 @@ export interface Facility {
   workingHours: string;
   licenseStatus: 'دارای پروانه بهره‌برداری معتبر' | 'در حال تمدید';
   services: string[];
+  status?: 'approved' | 'pending' | 'rejected';
 }
 
 export interface ClassifiedItem {
