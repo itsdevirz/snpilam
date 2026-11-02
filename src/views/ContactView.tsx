@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const ContactView: React.FC = () => {
-  const { addMessage } = useDataContext();
+  const { addMessage, sitePhone } = useDataContext();
   const [formType, setFormType] = useState<'inquiry' | 'suggestion' | 'complaint'>('inquiry');
   const [formData, setFormData] = useState({
     fullName: '',
@@ -71,9 +71,9 @@ export const ContactView: React.FC = () => {
           </div>
 
           <div className="bg-[#EFF6FC] border border-[#2463A6]/30 rounded-xl p-3 text-xs text-left">
-            <span className="text-[#2463A6] font-bold block">مرکز تلفن سراسری:</span>
+            <span className="text-[#2463A6] font-bold block">مرکز تلفن پاسخگویی:</span>
             <span className="text-slate-800 font-sans font-bold text-sm">
-              {COUNCIL_INFO.phoneCentral}
+              {sitePhone}
             </span>
           </div>
         </div>
@@ -113,7 +113,7 @@ export const ContactView: React.FC = () => {
                 <Phone className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-slate-900">تلفن‌های ارتباطی:</strong>
-                  <p className="text-slate-600 font-sans">مرکز تلفن: {COUNCIL_INFO.phoneCentral}</p>
+                  <p className="text-slate-600 font-sans">مرکز تلفن: {sitePhone}</p>
                   <p className="text-slate-600 font-sans">خط مستقیم دبیرخانه: {COUNCIL_INFO.phoneDirect}</p>
                   <p className="text-slate-500 font-sans">نمابر (فکس): {COUNCIL_INFO.fax}</p>
                 </div>

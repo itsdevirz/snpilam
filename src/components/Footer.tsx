@@ -1,14 +1,12 @@
 import React from 'react';
 import { CouncilEmblem } from './CouncilEmblem';
 import { NavigationTab } from '../types';
-import { COUNCIL_INFO, NATIONAL_SYSTEMS } from '../data/councilData';
+import { COUNCIL_INFO } from '../data/councilData';
+import { useDataContext } from '../context/DataContext';
 import {
   MapPin,
   Phone,
   Mail,
-  Clock,
-  ExternalLink,
-  ShieldCheck,
   ChevronLeft,
 } from 'lucide-react';
 
@@ -17,179 +15,120 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
+  const { sitePhone } = useDataContext();
+
   const navigate = (tab: NavigationTab) => {
     onSelectTab(tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <footer className="w-full bg-[#17365D] text-slate-300 border-t-4 border-[#2463A6] pt-12 pb-8 mt-16 text-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 pb-10 border-b border-slate-700">
-          {/* Column 1: Organization Brand & Purpose */}
-          <div className="space-y-4">
+    <footer className="w-full bg-[#17365D] text-slate-300 border-t-4 border-[#2463A6] pt-10 pb-6 mt-16 text-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-700/80">
+          {/* Column 1: Organization Brand */}
+          <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <CouncilEmblem size={44} className="bg-white rounded-full p-1" />
+              <CouncilEmblem size={40} className="bg-white rounded-full p-1 shrink-0" />
               <div>
-                <h4 className="font-bold text-white text-sm">نظام پزشکی استان ایلام</h4>
-                <p className="text-[11px] text-slate-400">جمهوری اسلامی ایران</p>
+                <h4 className="font-bold text-white text-sm">سازمان نظام پزشکی استان ایلام</h4>
+                <p className="text-[11px] text-slate-400">پورتال رسمی خدمات دیجیتال و امور صنفی</p>
               </div>
             </div>
             <p className="text-slate-300 leading-relaxed text-xs">
-              سازمان نظام پزشکی استان ایلام به عنوان نهاد قانونی و مستقل صنفی، متولی ساماندهی امور
-              حرفه‌ای، صدور پروانه‌ها، حفظ حقوق بیماران و صیانت از جایگاه والای جامعه پزشکی در استان
-              می‌باشد.
+              مرجع رسمی ساماندهی و صدور پروانه‌های حرفه‌ای جامعه پزشکی، دندانپزشکی، داروسازی و پیراپزشکی استان ایلام.
             </p>
-            <div className="pt-2 flex items-center gap-2 text-emerald-400">
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span className="text-[11px]">پورتال رسمی و دارای گواهی امنیتی دولت الکترونیک</span>
+          </div>
+
+          {/* Column 2: Quick Nav Links */}
+          <div>
+            <h4 className="font-bold text-white text-sm mb-3 pb-1 border-b border-slate-700/80">
+              دسترسی سریع
+            </h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                onClick={() => navigate('services')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>میز خدمات اعضا</span>
+              </button>
+              <button
+                onClick={() => navigate('physicians')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>جستجوی پزشکان</span>
+              </button>
+              <button
+                onClick={() => navigate('facilities')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>مراکز درمانی</span>
+              </button>
+              <button
+                onClick={() => navigate('education')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>آموزش مداوم</span>
+              </button>
+              <button
+                onClick={() => navigate('classifieds')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>نیازمندی‌ها</span>
+              </button>
+              <button
+                onClick={() => navigate('contact')}
+                className="hover:text-white transition-colors flex items-center gap-1 text-right"
+              >
+                <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6] shrink-0" />
+                <span>تماس و نشانی</span>
+              </button>
             </div>
           </div>
 
-          {/* Column 2: Quick Links to Major Sections */}
-          <div>
-            <h4 className="font-bold text-white text-sm mb-4 pb-1.5 border-b border-slate-700/80 flex items-center gap-2">
-              <span>بخش‌های اصلی پورتال</span>
-            </h4>
-            <ul className="space-y-2.5">
-              <li>
-                <button
-                  onClick={() => navigate('services')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>میز خدمات اعضا و پروانه‌ها</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('physicians')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>بانک جستجوی پزشکان و پیراپزشکان</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('facilities')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>فهرست بیمارستان‌ها و مراکز درمانی</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('classifieds')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>نیازمندی‌ها و فرصت‌های شغلی پزشکی</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('education')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>سامانه بازآموزی و کنفرانس‌های علمی</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('regulations')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>کتابخانه قوانین، تعرفه‌ها و بخشنامه‌ها</span>
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => navigate('departments')}
-                  className="hover:text-white transition-colors flex items-center gap-1.5 text-right w-full"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5 text-[#2463A6]" />
-                  <span>کمیسیون‌ها، دادسرا و واحدهای سازمان</span>
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 3: National Systems (Verified Links) */}
-          <div>
-            <h4 className="font-bold text-white text-sm mb-4 pb-1.5 border-b border-slate-700/80">
-              سامانه‌های ملی سلامت
-            </h4>
-            <ul className="space-y-2.5">
-              {NATIONAL_SYSTEMS.slice(0, 5).map((sys) => (
-                <li key={sys.url}>
-                  <a
-                    href={sys.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group hover:text-white transition-colors flex items-center justify-between"
-                  >
-                    <span className="group-hover:underline text-[12px]">{sys.title}</span>
-                    <ExternalLink className="w-3 h-3 text-slate-400 group-hover:text-white shrink-0" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Column 4: Contact & Office Hours */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-white text-sm mb-4 pb-1.5 border-b border-slate-700/80">
-              اطلاعات تماس و نشانی
+          {/* Column 3: Contact Details */}
+          <div className="space-y-2.5">
+            <h4 className="font-bold text-white text-sm mb-3 pb-1 border-b border-slate-700/80">
+              ارتباط با سازمان
             </h4>
 
-            <div className="flex items-start gap-2.5">
-              <MapPin className="w-4 h-4 text-[#EFF6FC] shrink-0 mt-0.5" />
-              <p className="leading-relaxed text-slate-300">{COUNCIL_INFO.address}</p>
+            <div className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+              <span className="leading-relaxed text-slate-300">{COUNCIL_INFO.address}</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Phone className="w-4 h-4 text-[#EFF6FC] shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-white font-sans">{COUNCIL_INFO.phoneCentral}</span>
-                <span className="text-[11px] text-slate-400 font-sans">
-                  خط مستقیم: {COUNCIL_INFO.phoneDirect}
-                </span>
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400">تلفن پاسخگویی:</span>
+                <a href={`tel:${sitePhone.replace(/[^\d]/g, '')}`} className="text-white font-bold font-sans text-sm hover:text-emerald-400">
+                  {sitePhone}
+                </a>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <Mail className="w-4 h-4 text-[#EFF6FC] shrink-0" />
-              <span className="text-slate-300 font-mono text-[11px]">{COUNCIL_INFO.email}</span>
-            </div>
-
-            <div className="flex items-start gap-2.5 pt-1">
-              <Clock className="w-4 h-4 text-[#EFF6FC] shrink-0 mt-0.5" />
-              <div className="text-[11px] text-slate-400">
-                <p>{COUNCIL_INFO.workingDays}: {COUNCIL_INFO.workingHours}</p>
-                <p>{COUNCIL_INFO.thursdayHours}</p>
-              </div>
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-amber-400 shrink-0" />
+              <span className="text-slate-300 font-mono text-xs">{COUNCIL_INFO.email}</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & Institutional Notice */}
-        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-slate-400 text-[11px]">
-          <p>© کلیه حقوق مادی و معنوی این پایگاه متعلق به سازمان نظام پزشکی استان ایلام می‌باشد.</p>
-          <div className="flex items-center gap-4">
+        {/* Bottom Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-400 text-[11px] pt-2">
+          <p>© کلیه حقوق متعلق به سازمان نظام پزشکی استان ایلام می‌باشد.</p>
+          <div className="flex items-center gap-3">
             <button onClick={() => navigate('about')} className="hover:text-white transition-colors">
-              درباره نظام پزشکی
-            </button>
-            <span>·</span>
-            <button onClick={() => navigate('advertising')} className="hover:text-white transition-colors">
-              ضوابط تبلیغات
+              درباره سازمان
             </button>
             <span>·</span>
             <button onClick={() => navigate('contact')} className="hover:text-white transition-colors">
-              میز خدمت الکترونیک
+              میز خدمت
             </button>
           </div>
         </div>

@@ -104,6 +104,8 @@ interface DataContextType {
   deleteMessage: (id: string) => void;
 
   // System
+  sitePhone: string;
+  updateSitePhone: (phone: string) => void;
   resetAllData: () => void;
   changeAdminPassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; message: string }>;
 }
@@ -141,6 +143,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(false);
   const [adminPasswordHash, setAdminPasswordHash] = useState<string>(DEFAULT_ADMIN_HASH);
+  const [sitePhone, setSitePhone] = useState<string>('۰۸۴-۳۲۲۲۴۵۶۰');
 
   // MySQL REST API calls (Direct server persistence)
   const apiSaveItem = (table: string, item: any) => {
@@ -189,8 +192,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               if (Array.isArray(d.services)) setServices(d.services);
               if (Array.isArray(d.messages)) setMessages(d.messages);
               if (Array.isArray(d.logs)) setLogs(d.logs);
-              if (d.settings && d.settings.admin_password_hash) {
-                setAdminPasswordHash(d.settings.admin_password_hash);
+              if (d.settings) {
+                if (d.settings.admin_password_hash) {
+                  setAdminPasswordHash(d.settings.admin_password_hash);
+                }
+                if (d.settings.site_phone) {
+                  setSitePhone(d.settings.site_phone);
+                }
               }
             }
           }
@@ -203,6 +211,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadFromMysql();
     return () => { isMounted = false; };
   }, []);
+
+  const updateSitePhone = (newPhone: string) => {
+    setSitePhone(newPhone);
+    fetch('/api/data.php?action=save_setting', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'site_phone', value: newPhone }),
+    }).catch(() => {});
+    addLog('بروزرسانی شماره تماس اصلی پورتال', newPhone, 'update');
+  };
 
   const addLog = (action: string, target: string, type: ActivityLog['type']) => {
     const now = new Date();
@@ -608,6 +626,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addMessage,
         updateMessageStatus,
         deleteMessage,
+        sitePhone,
+        updateSitePhone,
         resetAllData,
         changeAdminPassword,
       }}

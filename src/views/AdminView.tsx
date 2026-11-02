@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Physician,
   Announcement,
@@ -113,6 +113,8 @@ export const AdminView: React.FC = () => {
     deleteMessage,
     resetAllData,
     changeAdminPassword,
+    sitePhone,
+    updateSitePhone,
   } = useDataContext();
 
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>('overview');
@@ -1380,6 +1382,21 @@ export const AdminView: React.FC = () => {
           <div className="pb-3 border-b border-slate-200">
             <h3 className="text-base font-bold text-[#17365D]">تنظیمات سامانه و پشتیبان‌گیری داده‌ها</h3>
             <p className="text-xs text-slate-500 mt-0.5">مدیریت دادگان، تغییر کلمه عبور و نشست‌های مدیریتی</p>
+          </div>
+
+          {/* 0. Site Phone Configuration Card */}
+          <div className="bg-[#EFF6FC] border border-[#2463A6]/30 p-5 sm:p-6 rounded-xl space-y-4">
+            <div className="flex items-center gap-3 border-b border-sky-200 pb-3">
+              <div className="w-10 h-10 rounded-lg bg-[#2463A6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-sm text-[#17365D]">تنظیم شماره تماس پاسخگویی پورتال</h4>
+                <p className="text-[11px] text-slate-600">شماره تماس اصلی نمایش‌داده‌شده در فوتر و تمامی بخش‌های پورتال عمومی</p>
+              </div>
+            </div>
+
+            <PhoneSettingForm initialPhone={sitePhone} onSave={updateSitePhone} />
           </div>
 
           {/* 1. MySQL Database Configuration & cPanel Connection Card */}
@@ -2942,5 +2959,51 @@ const MessageReplyModal: React.FC<{
         </form>
       </div>
     </div>
+  );
+};
+
+// PhoneSettingForm component
+const PhoneSettingForm: React.FC<{ initialPhone: string; onSave: (phone: string) => void }> = ({ initialPhone, onSave }) => {
+  const [phoneVal, setPhoneVal] = useState(initialPhone);
+  const [savedStatus, setSavedStatus] = useState(false);
+
+  useEffect(() => {
+    setPhoneVal(initialPhone);
+  }, [initialPhone]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(phoneVal);
+    setSavedStatus(true);
+    setTimeout(() => setSavedStatus(false), 3000);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-end gap-3 max-w-lg text-xs">
+      <div className="flex-1 w-full">
+        <label className="block font-medium text-slate-700 mb-1">شماره تلفن پاسخگویی مرکز *</label>
+        <input
+          type="text"
+          required
+          value={phoneVal}
+          onChange={(e) => setPhoneVal(e.target.value)}
+          placeholder="مثال: ۰۸۴-۳۲۲۲۴۵۶۰"
+          className="w-full bg-white border border-[#E2E8F0] rounded-lg px-3.5 py-2 text-slate-900 font-mono text-xs focus:outline-none focus:border-[#2463A6]"
+        />
+      </div>
+      <button
+        type="submit"
+        className="bg-[#2463A6] hover:bg-[#17365D] text-white font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shrink-0 text-xs"
+      >
+        <CheckCircle2 className="w-4 h-4" />
+        <span>ذخیره شماره تماس</span>
+      </button>
+      {savedStatus && (
+        <span className="text-emerald-700 font-bold text-xs flex items-center gap-1">
+          <Check className="w-4 h-4" />
+          <span>بروزرسانی شد</span>
+        </span>
+      )}
+    </form>
   );
 };

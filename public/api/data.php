@@ -98,6 +98,22 @@ if ($action === 'get_all') {
     exit();
 }
 
+// 1.5 SAVE SETTING (Key-Value configuration)
+if ($action === 'save_setting' && $input) {
+    $key = isset($input['key']) ? trim($input['key']) : '';
+    $value = isset($input['value']) ? trim($input['value']) : '';
+    if (!empty($key)) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO admin_config (setting_key, setting_value) VALUES (:key, :val) ON DUPLICATE KEY UPDATE setting_value = :val");
+            $stmt->execute([':key' => $key, ':val' => $value]);
+            echo json_encode(['success' => true, 'message' => 'تنظیمات ذخیره گردید.'], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        }
+    }
+    exit();
+}
+
 // 2. SAVE OR UPDATE INDIVIDUAL ITEM
 if ($action === 'save_item' && $input) {
     $table = isset($input['table']) ? trim($input['table']) : '';

@@ -561,7 +561,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span>نشانی ساختمان مرکزی</span>
             </h5>
             <p className="text-slate-600 leading-relaxed">{COUNCIL_INFO.address}</p>
-            <p className="text-slate-500 font-sans">کد پستی: {COUNCIL_INFO.postalCode}</p>
           </div>
 
           <div className="space-y-2">
@@ -580,7 +579,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span>پاسخگویی تلفنی و داخلی‌ها</span>
             </h5>
             <p className="text-slate-600">مرکز تلفن: {COUNCIL_INFO.phoneCentral}</p>
-            <p className="text-slate-600">خط مستقیم دبیرخانه: {COUNCIL_INFO.phoneDirect}</p>
             <button
               onClick={() => onSelectTab('contact')}
               className="text-[#2463A6] hover:underline font-semibold"
